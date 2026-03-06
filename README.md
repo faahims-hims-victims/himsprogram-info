@@ -59,7 +59,7 @@ This site is one of five interconnected advocacy resources:
 | **[pilotsforhimsreform.org](https://pilotsforhimsreform.org)** | Main P4HR site — advocacy, legal analysis, pilot & controller stories, legislative action |
 | **[himsprogram.info](https://himsprogram.info)** | HIMS program information mirror — full SEO coverage, 130+ indexed pages |
 | **[faahims.rehab](https://faahims.rehab)** | Community forum gateway — 600+ members, peer support |
-| **[faahimsprogram.com](https://faahimsprogram.com)** | Recovery resources — treatment facilities, success stories |
+| **[faahimsprogram.com](https://faahimsprogram.com)** | Recovery resources — treatment facilities, success stories, and [AEROPath](https://faahimsprogram.com/?page=aeropath.html) pilot-centered alternative framework |
 | **[aeromedicalcompass.org](https://aeromedicalcompass.org)** | Independent AME directory & aeromedical guidance for pilots and controllers |
 
 Cross-linking between network sites strengthens search visibility and ensures pilots and controllers can find help regardless of which search terms they use.

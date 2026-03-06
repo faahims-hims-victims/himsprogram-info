@@ -23,7 +23,7 @@
   "author": "HIMS Reform Advocacy",
   "license": "MIT",
   "dependencies": {
-    "puppeteer": "^21.11.0",
+    "puppeteer": "^24.38.0",
     "cheerio": "^1.0.0-rc.12"
   },
   "engines": {

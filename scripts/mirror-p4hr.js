@@ -68,6 +68,55 @@ function fetchBinary(url, dest) {
 
 function sleep(ms) { execSync(`sleep ${ms / 1000}`); }
 function esc(s) { return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+/**
+ * FIX 3 — Strip embedded <head> blocks from page content.
+ * Preserves page-specific <style> rules (FAQ accordion, etc.) while
+ * removing body/html/container-level CSS that conflicts with mirror shell.
+ */
+function cleanPageContent(raw, pageName) {
+  let content = raw;
+  const trimmed = content.trimStart();
+  const isFullDoc = trimmed.startsWith('<!DOCTYPE') || trimmed.startsWith('<!doctype') ||
+      trimmed.startsWith('<html') || trimmed.startsWith('<head');
+  const hasEmbeddedHead = content.includes('<head>') || content.includes('<head ');
+
+  if (!isFullDoc && !hasEmbeddedHead) return content;
+
+  // Extract page-specific <style> blocks, strip conflicting rules
+  const styleBlocks = content.match(/<style[^>]*>[\s\S]*?<\/style>/gi) || [];
+  let cleanedStyles = styleBlocks.map(function(block) {
+    return block
+      .replace(/\bbody\s*\{[^}]*\}/g, '/* body rules stripped by mirror */')
+      .replace(/\bhtml\s*\{[^}]*\}/g, '/* html rules stripped by mirror */')
+      .replace(/\.container\s*\{[^}]*\}/g, '/* container rules stripped by mirror */');
+  }).join('\n');
+
+  if (isFullDoc) {
+    var bodyStart = content.indexOf('<body');
+    var bodyTagEnd = bodyStart > -1 ? content.indexOf('>', bodyStart) + 1 : -1;
+    var bodyClose = content.lastIndexOf('</body>');
+    if (bodyTagEnd > 0 && bodyClose > bodyTagEnd) {
+      content = content.substring(bodyTagEnd, bodyClose);
+    } else {
+      content = content.replace(/<head[\s\S]*?<\/head>/gi, '');
+      content = content.replace(/<\/?html[^>]*>/gi, '');
+      content = content.replace(/<\/?body[^>]*>/gi, '');
+      content = content.replace(/^<!(DOCTYPE|doctype)[^>]*>/m, '');
+    }
+    console.log('(full-doc cleaned) ');
+  }
+
+  // Strip remaining <head> sections and embedded GA tracking
+  content = content.replace(/<head[\s\S]*?<\/head>/gi, '');
+  content = content.replace(/<script[^>]*src="[^"]*googletagmanager[^"]*"[^>]*><\/script>/gi, '');
+  content = content.replace(/<script>\s*window\.dataLayer[\s\S]*?<\/script>/gi, '');
+
+  // Re-inject cleaned page styles
+  if (cleanedStyles.trim().length > 50) {
+    content = cleanedStyles + '\n' + content;
+  }
+  return content;
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // STEP 1: Download images, favicons, logos locally
@@ -254,6 +303,12 @@ shellBefore = shellBefore.replace(/\n{3,}/g, '\n\n');
 // ─── Inject CSS for fixed resource network panel (CSS-only, no DOM changes) ─
 const mirrorCSS = `
 <style id="mirror-enhancements">
+  /* FIX 1: Hamburger + close buttons above the mirror banner */
+  #hamburger-toggle,
+  #close-menu-toggle {
+    z-index: 10001 !important;
+    top: 52px !important;
+  }
   /* Fixed resource network panel — right side, doesn't scroll with content */
   #mirror-resource-network {
     position: fixed;
@@ -282,9 +337,24 @@ const mirrorCSS = `
     max-width: 100% !important;
     overflow-x: hidden !important;
   }
+  /* FIX 4: Prevent content from running under resource panel */
   #main-content {
     max-width: 100% !important;
     overflow: hidden !important;
+    box-sizing: border-box !important;
+    padding-right: 16px !important;
+  }
+  #main-content > * {
+    max-width: 100% !important;
+    overflow-wrap: break-word !important;
+    word-wrap: break-word !important;
+  }
+  /* Force page-level footers to flow normally (not float/overlap) */
+  #main-content footer {
+    clear: both !important;
+    float: none !important;
+    position: static !important;
+    width: 100% !important;
   }
 
   /* Resource card styles */
@@ -322,6 +392,9 @@ const mirrorCSS = `
     .container {
       width: 100% !important;
       max-width: 100% !important;
+    }
+    #main-content {
+      padding-right: 0 !important;
     }
   }
 
@@ -435,12 +508,14 @@ const shellAfter = `
 ${p4hrScripts}
 
 <script>
-// Close nav sidebar after any link click (desktop TOC + mobile nav)
+// FIX 2: Close mobile nav sidebar after selecting a link
 document.addEventListener('click', function(e) {
-  var link = e.target.closest('aside nav a[href]');
-  if (link && link.getAttribute('href') !== '#') {
-    var aside = document.querySelector('aside.active');
-    if (aside) {
+  var link = e.target.closest('aside a');
+  if (!link) return;
+  var href = link.getAttribute('href');
+  if (href && href !== '#' && !href.startsWith('javascript:')) {
+    var aside = document.querySelector('aside');
+    if (aside && aside.classList.contains('active')) {
       aside.classList.remove('active');
       document.body.classList.remove('menu-open');
       var h = document.getElementById('hamburger-toggle');
@@ -449,6 +524,24 @@ document.addEventListener('click', function(e) {
       if (c) c.style.display = 'none';
     }
   }
+});
+
+// Also close on sub-nav link clicks (handles onclick handlers)
+document.addEventListener('DOMContentLoaded', function() {
+  var subLinks = document.querySelectorAll('aside nav ul li ul li a');
+  subLinks.forEach(function(link) {
+    link.addEventListener('click', function() {
+      var aside = document.querySelector('aside');
+      if (aside) {
+        aside.classList.remove('active');
+        document.body.classList.remove('menu-open');
+        var h = document.getElementById('hamburger-toggle');
+        var c = document.getElementById('close-menu-toggle');
+        if (h) h.style.display = 'flex';
+        if (c) c.style.display = 'none';
+      }
+    });
+  });
 });
 </script>
 
@@ -620,22 +713,8 @@ for (let i = 0; i < sortedPages.length; i++) {
   if (content.includes('404: Page not found') && content.length < 500) {
     console.log('✗ 404'); failCount++; sleep(FETCH_DELAY); continue;
   }
-
-  // Some pages return full HTML documents instead of fragments
-  // Extract the <body> content in that case
-  let pageContent = content;
-  if (content.trimStart().startsWith('<!DOCTYPE') || content.trimStart().startsWith('<!doctype') ||
-      content.trimStart().startsWith('<html')) {
-    const bodyStart = content.indexOf('<body');
-    const bodyTagEnd = bodyStart > -1 ? content.indexOf('>', bodyStart) + 1 : -1;
-    const bodyClose = content.lastIndexOf('</body>');
-    if (bodyTagEnd > 0 && bodyClose > bodyTagEnd) {
-      pageContent = content.substring(bodyTagEnd, bodyClose);
-      console.log(`(full-page→extracted) `);
-    } else {
-      console.log('⚠ full-page, could not extract body'); failCount++; sleep(FETCH_DELAY); continue;
-    }
-  }
+// FIX 3: Clean page content — strip embedded <head>, conflicting CSS
+  let pageContent = cleanPageContent(content, pageName);
 
   // Get SEO meta (from P4HR's PAGE_META or generate fallback)
   const meta = pageMeta[pageName] || {

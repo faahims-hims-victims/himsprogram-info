@@ -38,7 +38,7 @@ function fetchText(url, xhr = false) {
   const h = xhr ? '-H "X-Requested-With: XMLHttpRequest"' : '';
   try {
     return execSync(
-      `curl -s -L --connect-timeout 20 --max-time 30 -A "Mozilla/5.0 (compatible; P4HRMirrorBot/1.0)" ${h} "${url}"`,
+      `curl -s -L --connect-timeout 20 --max-time 30 ${h} "${url}"`,
       { maxBuffer: 5 * 1024 * 1024, encoding: 'utf-8' }
     );
   } catch (e) { return null; }
@@ -46,7 +46,7 @@ function fetchText(url, xhr = false) {
 
 function fetchBinary(url, dest) {
   try {
-    execSync(`curl -s -L --connect-timeout 15 --max-time 30 -A "Mozilla/5.0 (compatible; P4HRMirrorBot/1.0)" -o "${dest}" "${url}"`);
+    execSync(`curl -s -L --connect-timeout 15 --max-time 30 -o "${dest}" "${url}"`);
     const stat = fs.statSync(dest);
     return stat.size > 0;
   } catch (e) { return false; }

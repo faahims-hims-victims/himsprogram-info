@@ -1,0 +1,32 @@
+{
+  "name": "himsprogram-info",
+  "version": "1.0.0",
+  "description": "Comprehensive FAA HIMS program information, requirements, advocacy, and reform resources. Static mirror of Pilots for HIMS Reform optimized for maximum Google SERP coverage.",
+  "main": "index.js",
+  "scripts": {
+    "mirror": "node scripts/mirror-p4hr.js",
+    "seo": "node scripts/generate-seo.js",
+    "favicon": "node scripts/fetch-favicon.js",
+    "build": "npm run favicon && npm run mirror && npm run seo",
+    "test": "echo \"Build complete\""
+  },
+  "keywords": [
+    "FAA",
+    "HIMS",
+    "program",
+    "pilot",
+    "medical",
+    "certification",
+    "aviation",
+    "reform"
+  ],
+  "author": "HIMS Reform Advocacy",
+  "license": "MIT",
+  "dependencies": {
+    "puppeteer": "^21.11.0",
+    "cheerio": "^1.0.0-rc.12"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

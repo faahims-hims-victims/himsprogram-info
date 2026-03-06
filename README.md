@@ -1,4 +1,4 @@
-# ✈️ himsprogram.info
+# himsprogram.info
 
 **Independent FAA HIMS Program Information & Advocacy Resource**
 
@@ -10,7 +10,7 @@
 
 Part of the **[Pilots for HIMS Reform](https://pilotsforhimsreform.org)** resource network — providing pilots, air traffic controllers, aviation professionals, families, and policymakers with independent, well-researched information about the FAA's Human Intervention Motivation Study (HIMS) program.
 
-## 🔍 What Is This?
+## What Is This?
 
 The FAA HIMS program governs psychiatric oversight and medical certification for pilots and air traffic controllers flagged for substance use, mental health history, SSRI prescriptions, or even unfounded suspicion. **himsprogram.info** provides an independent, advocacy-driven information center covering:
 
@@ -20,7 +20,7 @@ The FAA HIMS program governs psychiatric oversight and medical certification for
 - **Real stories** — Firsthand accounts from pilots and controllers who've been through the system
 - **Emergency toolkit** — Immediate guidance for aviation professionals under pressure to sign or comply
 
-## 📢 Why This Matters
+## Why This Matters
 
 > *"I followed every rule. I never relapsed. But they treated me like I had no voice. Reform is not optional — it's overdue."*
 > — Anonymous Pilot
@@ -43,9 +43,9 @@ Key findings from independent reviews:
 > *"If you threaten a pilot with taking away his wings, it's like threatening a doctor with taking away his stethoscope. That's a lot of leverage."*
 > — **Dr. Lynn Hankes**, addiction treatment specialist, explaining why HIMS success rates cannot be replicated in the general population
 
-## 🌐 P4HR Network
+## P4HR Network
 
-This site is one of four interconnected advocacy resources:
+This site is one of five interconnected advocacy resources:
 
 | Site | Purpose |
 |------|---------|
@@ -53,10 +53,11 @@ This site is one of four interconnected advocacy resources:
 | **[himsprogram.info](https://himsprogram.info)** | HIMS program information mirror — full SEO coverage, 130+ indexed pages |
 | **[faahims.rehab](https://faahims.rehab)** | Community forum gateway — 600+ members, peer support |
 | **[faahimsprogram.com](https://faahimsprogram.com)** | Recovery resources — treatment facilities, success stories |
+| **[aeromedicalcompass.org](https://aeromedicalcompass.org)** | Independent AME directory & aeromedical guidance for pilots and controllers |
 
 Cross-linking between network sites strengthens search visibility and ensures pilots and controllers can find help regardless of which search terms they use.
 
-## ⚙️ How It Works
+## How It Works
 
 This site is a **static mirror** of pilotsforhimsreform.org, automatically generated every 6 hours via GitHub Actions. The build process:
 
@@ -70,7 +71,7 @@ This site is a **static mirror** of pilotsforhimsreform.org, automatically gener
 
 Every link works. Every page is indexable. Every toggle and dropdown functions correctly.
 
-## 📊 SEO Strategy
+## SEO Strategy
 
 Optimized to compete with established domains (`himsprogram.com`, `faa.gov`) for aviation-professional-relevant search queries:
 
@@ -80,7 +81,7 @@ Optimized to compete with established domains (`himsprogram.com`, `faa.gov`) for
 - **Advocacy-angle content** that official sources don't provide (pilot & controller stories, reform analysis, legal cases)
 - **Long-tail keyword coverage** — from "FAA HIMS program requirements" to "PEth false positives pilots" to "air traffic controller HIMS program"
 
-## 🛠️ Technical Details
+## Technical Details
 
 | Component | Detail |
 |-----------|--------|
@@ -91,7 +92,7 @@ Optimized to compete with established domains (`himsprogram.com`, `faa.gov`) for
 | Pages | ~130 generated per build |
 | Assets | Favicons, logos, social icons (local copies) |
 
-## 📁 Repository Structure
+## Repository Structure
 
 ```
 himsprogram-info/
@@ -106,7 +107,7 @@ himsprogram-info/
 └── CNAME                               # Custom domain config
 ```
 
-## 🚀 Replicating for Other Domains
+## Replicating for Other Domains
 
 The generator is domain-agnostic. To create a mirror on a new domain:
 
@@ -126,25 +127,26 @@ MIRROR_DOMAIN=newdomain.com node scripts/mirror-p4hr.js
 
 Environment variables: `MIRROR_DOMAIN` (target domain), `SOURCE_DOMAIN` (source, default: pilotsforhimsreform.org).
 
-## 🤝 Contributing
+## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). Report issues or suggest improvements via GitHub Issues.
 
 For security concerns: [SECURITY.md](SECURITY.md)
 
-## 📜 License
+## License
 
 [MIT](LICENSE)
 
-## 🔗 Links
+## Links
 
 - **Main Site:** [pilotsforhimsreform.org](https://pilotsforhimsreform.org)
 - **Community Forum:** [hims-victims.freeforums.net](https://hims-victims.freeforums.net)
+- **Aeromedical Compass:** [aeromedicalcompass.org](https://aeromedicalcompass.org)
 - **This Site:** [himsprogram.info](https://himsprogram.info)
 
 ---
 
-## 📚 Key Sources & References
+## Key Sources & References
 
 - **National Academies of Sciences, Engineering, and Medicine** (2023). *[Substance Misuse Programs in Commercial Aviation: Safety First](https://nap.nationalacademies.org/catalog/26880)*. Washington, DC: The National Academies Press.
 - **DOT Office of Inspector General** (2023). *[FAA Pilot Mental Health Final Report](https://www.oig.dot.gov/sites/default/files/FAA%20Pilot%20Mental%20Health%20Final%20Report_07.12.2023.pdf)*.

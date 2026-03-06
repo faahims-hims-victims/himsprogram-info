@@ -238,113 +238,95 @@ shellBefore = shellBefore.replace(/G-WYLY7LQ0PE/g, 'G-MIRROR-DISABLED');
 // Remove the original canonical (we inject per-page)
 shellBefore = shellBefore.replace(/<link\s+rel="canonical"\s+href="[^"]*"\s*\/?\s*>/g, '');
 
-// ─── Inject sticky sidebar layout CSS ────────────────────────────────────
-const layoutCSS = `
-<style id="mirror-layout">
-  /* Content + Sidebar layout */
-  #content-layout-wrapper {
-    display: flex;
-    align-items: flex-start;
-    gap: 0;
-    min-height: calc(100vh - 50px);
-  }
-  #main-content {
-    flex: 1 1 0%;
-    min-width: 0;
-    overflow-x: hidden;
-  }
-  #resource-network {
-    position: sticky;
-    top: 48px;                           /* below mirror banner */
-    align-self: flex-start;
-    width: 340px;
-    min-width: 300px;
-    flex-shrink: 0;
-    max-height: calc(100vh - 56px);
+// ─── Strip P4HR duplicate meta tags that conflict with per-page SEO ──────
+shellBefore = shellBefore.replace(/<meta\s+content="[^"]*"\s+name="description"\s*\/?>/g, '');
+shellBefore = shellBefore.replace(/<meta\s+content="[^"]*"\s+name="keywords"\s*\/?>/g, '');
+shellBefore = shellBefore.replace(/<meta\s+content="[^"]*"\s+name="author"\s*\/?>/g, '');
+shellBefore = shellBefore.replace(/<meta\s+name="twitter:[^"]*"\s+content="[^"]*"\s*\/?>/g, '');
+shellBefore = shellBefore.replace(/<meta\s+content="[^"]*"\s+property="og:image"\s*\/?>/g, '');
+shellBefore = shellBefore.replace(/<meta\s+content="[^"]*"\s+property="og:type"\s*\/?>/g, '');
+shellBefore = shellBefore.replace(/<meta\s+content="[^"]*"\s+property="og:locale"\s*\/?>/g, '');
+shellBefore = shellBefore.replace(/<meta\s+name="robots"\s+content="[^"]*"\s*\/?>/g, '');
+shellBefore = shellBefore.replace(/<script type="application\/ld\+json">\s*\{[^}]*"@type"\s*:\s*"Organization"[\s\S]*?<\/script>/g, '');
+shellBefore = shellBefore.replace(/<script type="application\/ld\+json">\s*\{[^}]*"@type"\s*:\s*"WebSite"[\s\S]*?<\/script>/g, '');
+shellBefore = shellBefore.replace(/\n{3,}/g, '\n\n');
+
+// ─── Inject CSS for fixed resource network panel (CSS-only, no DOM changes) ─
+const mirrorCSS = `
+<style id="mirror-enhancements">
+  /* Fixed resource network panel — right side, doesn't scroll with content */
+  #mirror-resource-network {
+    position: fixed;
+    top: 48px;
+    right: 0;
+    width: 320px;
+    bottom: 0;
     overflow-y: auto;
+    z-index: 9000;
     scrollbar-width: thin;
     scrollbar-color: #2a3f55 transparent;
   }
-  #resource-network::-webkit-scrollbar { width: 5px; }
-  #resource-network::-webkit-scrollbar-track { background: transparent; }
-  #resource-network::-webkit-scrollbar-thumb { background: #2a3f55; border-radius: 3px; }
+  #mirror-resource-network::-webkit-scrollbar { width: 5px; }
+  #mirror-resource-network::-webkit-scrollbar-track { background: transparent; }
+  #mirror-resource-network::-webkit-scrollbar-thumb { background: #2a3f55; border-radius: 3px; }
 
-  /* Resource cards grid — single column in sidebar */
-  .rn-cards {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-bottom: 20px;
+  /* Push main content left to make room for the fixed panel */
+  #main-content {
+    margin-right: 320px !important;
   }
+
+  /* Resource card styles */
   .rn-card {
     display: block;
     background: #162332;
-    padding: 14px 16px;
+    padding: 12px 14px;
     border-radius: 8px;
     text-decoration: none;
     color: #fff;
     border: 1px solid #2a3f55;
     transition: transform 0.2s ease, border-color 0.2s ease;
+    margin-bottom: 8px;
   }
   .rn-card:hover {
     transform: translateY(-2px);
     border-color: #4a90d9;
   }
-  .rn-card strong { display: block; margin-bottom: 4px; font-size: 0.92rem; }
-  .rn-card small  { color: #8899aa; font-size: 0.8rem; line-height: 1.3; }
+  .rn-card strong { display: block; margin-bottom: 3px; font-size: 0.88rem; }
+  .rn-card small  { color: #8899aa; font-size: 0.78rem; line-height: 1.3; }
   .rn-card--active {
     border-color: #4a90d9;
     background: #1a2d42;
   }
   .rn-card--active strong { color: #7cb9ff; }
 
-  /* Responsive: sidebar collapses below main content on narrow screens */
+  /* Responsive: collapse panel below 1080px */
   @media (max-width: 1080px) {
-    #content-layout-wrapper {
-      flex-direction: column;
-    }
-    #resource-network {
+    #mirror-resource-network {
       position: static;
       width: 100%;
-      min-width: unset;
       max-height: unset;
       overflow-y: visible;
     }
-    .rn-cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-    }
-    /* Center the last card when it's alone in a 2-col row */
-    .rn-cards .rn-card:last-child:nth-child(odd) {
-      grid-column: 1 / -1;
-      max-width: calc(50% - 5px);
-      justify-self: center;
+    #main-content {
+      margin-right: 0 !important;
     }
   }
 
-  /* Site-wide footer below the layout wrapper */
-  #site-footer {
-    background: #070e17;
-    color: #778;
-    text-align: center;
-    padding: 20px;
-    font-family: 'Arimo', sans-serif;
+  /* Mobile: hide panel entirely (nav sidebar takes priority) */
+  @media (max-width: 768px) {
+    #mirror-resource-network {
+      display: none;
+    }
   }
-  #site-footer a { color: #4a90d9; }
 </style>`;
 
-shellBefore = shellBefore.replace('</head>', layoutCSS + '\n</head>');
+shellBefore = shellBefore.replace('</head>', mirrorCSS + '\n</head>');
 
-// Wrap main-content in a flex layout container
-shellBefore = shellBefore.replace(
-  '<div id="main-content">',
-  '<div id="content-layout-wrapper">\n<div id="main-content">'
-);
-
-// Shell AFTER content: close main-content, add sticky sidebar, close wrapper, add footer
+// Shell AFTER content: extract real P4HR scripts + add network footer
 const YEAR = new Date().getFullYear();
 
 // Extract the actual P4HR JavaScript functions from the shell
+// These include: toggleSection, toggleExpandCollapse, toggleThemeSwitch, openMenu, closeMenu
 let p4hrScripts = '';
 const scriptBlockMatch = shell.match(/function toggleSection[\s\S]*?<\/script>/);
 if (scriptBlockMatch) {
@@ -363,66 +345,61 @@ if (tocMatch) {
 const shellAfter = `
 </div><!-- /main-content -->
 
-<!-- ═══ Sticky Resource Network Sidebar ═══ -->
-<aside id="resource-network">
-  <div style="background:#0d1b2a;color:#ccc;padding:20px 16px;font-family:'Arimo',sans-serif;border-radius:10px 0 0 10px;">
-    <h2 style="color:#fff;text-align:center;margin:0 0 6px;font-size:1.15rem;font-weight:700;">Comprehensive HIMS Resource Network</h2>
-    <p style="text-align:center;color:#aaa;margin:0 0 18px;font-size:0.82rem;line-height:1.3;">
+<!-- ═══ Fixed Resource Network Panel (CSS position:fixed, no DOM restructuring) ═══ -->
+<div id="mirror-resource-network">
+  <div style="background:#0d1b2a;color:#ccc;padding:20px 16px;font-family:'Arimo',sans-serif;min-height:100%;">
+    <h2 style="color:#fff;text-align:center;margin:0 0 6px;font-size:1.1rem;font-weight:700;">Comprehensive HIMS Resource Network</h2>
+    <p style="text-align:center;color:#aaa;margin:0 0 16px;font-size:0.8rem;line-height:1.3;">
       Complete ecosystem of pilot advocacy, community support, and reform resources.
     </p>
 
-    <div class="rn-cards">
-      <a class="rn-card rn-card--active" href="/">
-        <strong>Program Information</strong>
-        <small>Comprehensive FAA HIMS program details, requirements, and advocacy resources</small>
-      </a>
-      <a class="rn-card" href="https://faahims.rehab">
-        <strong>Community Forum</strong>
-        <small>Active pilot community with 600+ members sharing real experiences and peer support</small>
-      </a>
-      <a class="rn-card" href="https://faahimsprogram.com">
-        <strong>Recovery Resources</strong>
-        <small>Treatment facilities, success stories, and rehabilitation support for aviation professionals</small>
-      </a>
-      <a class="rn-card" href="https://aeromedicalcompass.org">
-        <strong>Aeromedical Compass</strong>
-        <small>Independent AME directory and aeromedical guidance for pilots and controllers</small>
-      </a>
-      <a class="rn-card" href="https://pilotsforhimsreform.org">
-        <strong>★ Reform Advocacy (Main Site)</strong>
-        <small>Official Pilots for HIMS Reform organization leading policy change efforts</small>
-      </a>
+    <a class="rn-card rn-card--active" href="/">
+      <strong>Program Information</strong>
+      <small>Comprehensive FAA HIMS program details, requirements, and advocacy resources</small>
+    </a>
+    <a class="rn-card" href="https://faahims.rehab">
+      <strong>Community Forum</strong>
+      <small>Active pilot community with 600+ members sharing real experiences and peer support</small>
+    </a>
+    <a class="rn-card" href="https://faahimsprogram.com">
+      <strong>Recovery Resources</strong>
+      <small>Treatment facilities, success stories, and rehabilitation support for aviation professionals</small>
+    </a>
+    <a class="rn-card" href="https://aeromedicalcompass.org">
+      <strong>Aeromedical Compass</strong>
+      <small>Independent AME directory and aeromedical guidance for pilots and controllers</small>
+    </a>
+    <a class="rn-card" href="https://pilotsforhimsreform.org">
+      <strong style="color:#7cb9ff;">★ Reform Advocacy (Main Site)</strong>
+      <small>Official Pilots for HIMS Reform organization leading policy change efforts</small>
+    </a>
+
+    <div style="text-align:center;margin-top:16px;font-size:0.75rem;">
+      <div style="margin-bottom:6px;">
+        <strong style="color:#4a90d9;">6 HR</strong> Update Frequency &nbsp;·&nbsp;
+        <strong style="color:#4a90d9;">600+</strong> Active Pilots
+      </div>
+      <div>
+        <strong style="color:#4a90d9;">5</strong> Interconnected Sites &nbsp;·&nbsp;
+        <strong style="color:#4a90d9;">24/7</strong> Information Access
+      </div>
     </div>
 
-    <div style="display:flex;flex-direction:column;align-items:center;gap:6px;margin-bottom:16px;font-size:0.78rem;">
-      <div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center;">
-        <span><strong style="color:#4a90d9;">6 HR</strong> Update Frequency</span>
-        <span><strong style="color:#4a90d9;">600+</strong> Active Pilots</span>
-      </div>
-      <div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center;">
-        <span><strong style="color:#4a90d9;">5</strong> Interconnected Sites</span>
-        <span><strong style="color:#4a90d9;">24/7</strong> Information Access</span>
-      </div>
+    <div style="text-align:center;padding-top:16px;margin-top:16px;border-top:1px solid #2a3f55;">
+      <p style="font-size:0.75rem;color:#778;margin:0 0 4px;">
+        &copy; ${YEAR} Pilots for HIMS Reform. All rights reserved. |
+        <a href="${SOURCE_URL}/?page=terms.html" style="color:#4a90d9;">Terms</a> |
+        <a href="${SOURCE_URL}/?page=privacy.html" style="color:#4a90d9;">Privacy</a>
+      </p>
+      <p style="font-size:0.68rem;color:#556;margin:0 0 4px;">
+        Not affiliated with the FAA or official HIMS Program.
+      </p>
+      <p style="font-size:0.64rem;color:#445;margin:0;font-family:monospace;">
+        Build #${BUILD_NUMBER} | ${DISPLAY_TIME} UTC
+      </p>
     </div>
   </div>
-</aside>
-
-</div><!-- /content-layout-wrapper -->
-
-<!-- ═══ Site Footer ═══ -->
-<footer id="site-footer">
-  <p style="font-size:0.8rem;margin:0 0 6px;">
-    &copy; ${YEAR} Pilots for HIMS Reform. All rights reserved. |
-    <a href="${SOURCE_URL}/?page=terms.html">Terms</a> |
-    <a href="${SOURCE_URL}/?page=privacy.html">Privacy</a>
-  </p>
-  <p style="font-size:0.72rem;color:#556;margin:0 0 6px;">
-    Not affiliated with the FAA or official HIMS Program. For educational purposes only.
-  </p>
-  <p style="font-size:0.68rem;color:#445;margin:0;font-family:monospace;">
-    Build #${BUILD_NUMBER} | ${DISPLAY_TIME} UTC | Next update in under 6 hours
-  </p>
-</footer>
+</div>
 
 ${p4hrScripts}
 
@@ -430,6 +407,7 @@ ${p4hrScripts}
 </html>`;
 
 // Extract homepage content from the shell
+// The shell structure: <div id="main-content">[homepage content]</div>[scripts]</body>
 const bodyCloseIdx = shell.lastIndexOf('</body>');
 const betweenMcAndBody = shell.substring(mcEnd, bodyCloseIdx);
 
@@ -695,11 +673,15 @@ fs.writeFileSync('robots.txt',
 console.log('   ✓ robots.txt\n');
 
 // ═══════════════════════════════════════════════════════════════════════════
-// STEP 11: Write CNAME
+// STEP 11: Write CNAME & IndexNow key
 // ═══════════════════════════════════════════════════════════════════════════
 
 fs.writeFileSync('CNAME', MIRROR_DOMAIN);
-console.log(`11. CNAME → ${MIRROR_DOMAIN}\n`);
+console.log(`11. CNAME → ${MIRROR_DOMAIN}`);
+
+// IndexNow verification key file
+fs.writeFileSync('79cfaa07ffd0a57d6d8add4207f5d8bd.txt', '79cfaa07ffd0a57d6d8add4207f5d8bd\n');
+console.log('    IndexNow key file written\n');
 
 // ═══════════════════════════════════════════════════════════════════════════
 // DONE

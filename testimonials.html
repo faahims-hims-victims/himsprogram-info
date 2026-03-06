@@ -13,12 +13,12 @@
     <meta property="og:type" content="website"/>
     <meta property="og:url" content="https://himsprogram.info/testimonials.html"/>
     <meta property="og:site_name" content="FAA HIMS Program Info — himsprogram.info"/>
-    <meta property="og:updated_time" content="2026-03-06T09:43:02.502Z"/>
+    <meta property="og:updated_time" content="2026-03-06T10:25:38.420Z"/>
     <meta name="twitter:card" content="summary"/>
     <meta name="twitter:title" content="HIMS Program Testimonials from Pilots | Pilots for HIMS Reform"/>
     <meta name="twitter:description" content="Direct testimonials from pilots who lived through the FAA HIMS program. Their words expose patterns of coercion, oversight failures, and systemic harm."/>
     <script type="application/ld+json">
-    {"@context":"https://schema.org","@type":"WebPage","name":"HIMS Program Testimonials from Pilots | Pilots for HIMS Reform","description":"Direct testimonials from pilots who lived through the FAA HIMS program. Their words expose patterns of coercion, oversight failures, and systemic harm.","url":"https://himsprogram.info/testimonials.html","dateModified":"2026-03-06T09:43:02.502Z","isPartOf":{"@type":"WebSite","name":"FAA HIMS Program Information","url":"https://himsprogram.info"}}
+    {"@context":"https://schema.org","@type":"WebPage","name":"HIMS Program Testimonials from Pilots | Pilots for HIMS Reform","description":"Direct testimonials from pilots who lived through the FAA HIMS program. Their words expose patterns of coercion, oversight failures, and systemic harm.","url":"https://himsprogram.info/testimonials.html","dateModified":"2026-03-06T10:25:38.420Z","isPartOf":{"@type":"WebSite","name":"FAA HIMS Program Information","url":"https://himsprogram.info"}}
     </script>
 <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin/>
 <link rel="preconnect" href="https://assets.mailerlite.com" crossorigin/>
@@ -593,6 +593,99 @@
     ml('account', '1458682');
 </script>
 <!-- End MailerLite Universal -->
+
+<style id="mirror-layout">
+  /* Content + Sidebar layout */
+  #content-layout-wrapper {
+    display: flex;
+    align-items: flex-start;
+    gap: 0;
+    min-height: calc(100vh - 50px);
+  }
+  #main-content {
+    flex: 1 1 0%;
+    min-width: 0;
+    overflow-x: hidden;
+  }
+  #resource-network {
+    position: sticky;
+    top: 48px;                           /* below mirror banner */
+    align-self: flex-start;
+    width: 340px;
+    min-width: 300px;
+    flex-shrink: 0;
+    max-height: calc(100vh - 56px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #2a3f55 transparent;
+  }
+  #resource-network::-webkit-scrollbar { width: 5px; }
+  #resource-network::-webkit-scrollbar-track { background: transparent; }
+  #resource-network::-webkit-scrollbar-thumb { background: #2a3f55; border-radius: 3px; }
+
+  /* Resource cards grid — single column in sidebar */
+  .rn-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .rn-card {
+    display: block;
+    background: #162332;
+    padding: 14px 16px;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #fff;
+    border: 1px solid #2a3f55;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+  }
+  .rn-card:hover {
+    transform: translateY(-2px);
+    border-color: #4a90d9;
+  }
+  .rn-card strong { display: block; margin-bottom: 4px; font-size: 0.92rem; }
+  .rn-card small  { color: #8899aa; font-size: 0.8rem; line-height: 1.3; }
+  .rn-card--active {
+    border-color: #4a90d9;
+    background: #1a2d42;
+  }
+  .rn-card--active strong { color: #7cb9ff; }
+
+  /* Responsive: sidebar collapses below main content on narrow screens */
+  @media (max-width: 1080px) {
+    #content-layout-wrapper {
+      flex-direction: column;
+    }
+    #resource-network {
+      position: static;
+      width: 100%;
+      min-width: unset;
+      max-height: unset;
+      overflow-y: visible;
+    }
+    .rn-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    }
+    /* Center the last card when it's alone in a 2-col row */
+    .rn-cards .rn-card:last-child:nth-child(odd) {
+      grid-column: 1 / -1;
+      max-width: calc(50% - 5px);
+      justify-self: center;
+    }
+  }
+
+  /* Site-wide footer below the layout wrapper */
+  #site-footer {
+    background: #070e17;
+    color: #778;
+    text-align: center;
+    padding: 20px;
+    font-family: 'Arimo', sans-serif;
+  }
+  #site-footer a { color: #4a90d9; }
+</style>
 </head>
 <body data-theme="light">
 <div id="mirror-banner" style="background:linear-gradient(135deg,#1a3a5c,#2563eb);color:#fff;text-align:center;padding:8px 16px;font-size:0.82rem;font-family:'Arimo',sans-serif;position:sticky;top:0;z-index:10000;box-shadow:0 2px 4px rgba(0,0,0,0.2);">
@@ -752,6 +845,7 @@
 </div>
 </aside>
 <!-- Main Content -->
+<div id="content-layout-wrapper">
 <div id="main-content">
 <head>
   <!-- Google tag (gtag.js) -->
@@ -820,56 +914,66 @@
 
 </div><!-- /main-content -->
 
-<!-- P4HR Network Footer -->
-<section style="background:#0d1b2a;color:#ccc;padding:50px 20px 30px;font-family:'Arimo',sans-serif;">
-  <div style="max-width:1100px;margin:0 auto;">
-    <h2 style="color:#fff;text-align:center;margin-bottom:10px;font-size:1.4rem;">Comprehensive HIMS Resource Network</h2>
-    <p style="text-align:center;color:#aaa;margin-bottom:30px;font-size:0.95rem;">
+<!-- ═══ Sticky Resource Network Sidebar ═══ -->
+<aside id="resource-network">
+  <div style="background:#0d1b2a;color:#ccc;padding:20px 16px;font-family:'Arimo',sans-serif;border-radius:10px 0 0 10px;">
+    <h2 style="color:#fff;text-align:center;margin:0 0 6px;font-size:1.15rem;font-weight:700;">Comprehensive HIMS Resource Network</h2>
+    <p style="text-align:center;color:#aaa;margin:0 0 18px;font-size:0.82rem;line-height:1.3;">
       Complete ecosystem of pilot advocacy, community support, and reform resources.
     </p>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;margin-bottom:30px;">
-      <a href="https://himsprogram.info" style="display:block;background:#162332;padding:18px;border-radius:8px;text-decoration:none;color:#fff;border:1px solid #2a3f55;">
-        <strong style="display:block;margin-bottom:6px;">Program Information</strong>
-        <small style="color:#8899aa;">Comprehensive FAA HIMS program details, requirements, and advocacy resources</small>
+
+    <div class="rn-cards">
+      <a class="rn-card rn-card--active" href="/">
+        <strong>Program Information</strong>
+        <small>Comprehensive FAA HIMS program details, requirements, and advocacy resources</small>
       </a>
-      <a href="https://faahims.rehab" style="display:block;background:#162332;padding:18px;border-radius:8px;text-decoration:none;color:#fff;border:1px solid #2a3f55;">
-        <strong style="display:block;margin-bottom:6px;">Community Forum</strong>
-        <small style="color:#8899aa;">Active pilot community with 600+ members sharing real experiences and peer support</small>
+      <a class="rn-card" href="https://faahims.rehab">
+        <strong>Community Forum</strong>
+        <small>Active pilot community with 600+ members sharing real experiences and peer support</small>
       </a>
-      <a href="https://faahimsprogram.com" style="display:block;background:#162332;padding:18px;border-radius:8px;text-decoration:none;color:#fff;border:1px solid #2a3f55;">
-        <strong style="display:block;margin-bottom:6px;">Recovery Resources</strong>
-        <small style="color:#8899aa;">Treatment facilities, success stories, and rehabilitation support for aviation professionals</small>
+      <a class="rn-card" href="https://faahimsprogram.com">
+        <strong>Recovery Resources</strong>
+        <small>Treatment facilities, success stories, and rehabilitation support for aviation professionals</small>
       </a>
-      <a href="https://aeromedicalcompass.org" style="display:block;background:#162332;padding:18px;border-radius:8px;text-decoration:none;color:#fff;border:1px solid #2a3f55;">
-        <strong style="display:block;margin-bottom:6px;">Aeromedical Compass</strong>
-        <small style="color:#8899aa;">Independent AME directory and aeromedical guidance for pilots and controllers</small>
+      <a class="rn-card" href="https://aeromedicalcompass.org">
+        <strong>Aeromedical Compass</strong>
+        <small>Independent AME directory and aeromedical guidance for pilots and controllers</small>
       </a>
-      <a href="https://pilotsforhimsreform.org" style="display:block;background:#162332;padding:18px;border-radius:8px;text-decoration:none;color:#fff;border:1px solid #4a90d9;">
-        <strong style="display:block;margin-bottom:6px;color:#7cb9ff;">★ Reform Advocacy (Main Site)</strong>
-        <small style="color:#8899aa;">Official Pilots for HIMS Reform organization leading policy change efforts</small>
+      <a class="rn-card" href="https://pilotsforhimsreform.org">
+        <strong>★ Reform Advocacy (Main Site)</strong>
+        <small>Official Pilots for HIMS Reform organization leading policy change efforts</small>
       </a>
     </div>
-    <div style="display:flex;justify-content:center;gap:24px;margin-bottom:20px;flex-wrap:wrap;">
-      <span style="font-size:0.85rem;"><strong style="color:#4a90d9;">6 HR</strong> Update Frequency</span>
-      <span style="font-size:0.85rem;"><strong style="color:#4a90d9;">600+</strong> Active Pilots</span>
-      <span style="font-size:0.85rem;"><strong style="color:#4a90d9;">5</strong> Interconnected Sites</span>
-      <span style="font-size:0.85rem;"><strong style="color:#4a90d9;">24/7</strong> Information Access</span>
-    </div>
-    <div style="text-align:center;padding-top:20px;border-top:1px solid #2a3f55;">
-      <p style="font-size:0.8rem;color:#778;">
-        © 2026 Pilots for HIMS Reform. All rights reserved. |
-        <a href="/terms.html" style="color:#4a90d9;">Terms</a> |
-        <a href="/privacy.html" style="color:#4a90d9;">Privacy</a>
-      </p>
-      <p style="font-size:0.72rem;color:#556;margin-top:6px;">
-        Not affiliated with the FAA or official HIMS Program. For educational purposes only.
-      </p>
-      <p style="font-size:0.68rem;color:#445;margin-top:6px;font-family:monospace;">
-        Build #45 | 3/6/2026, 09:43:02 UTC | Next update in under 6 hours
-      </p>
+
+    <div style="display:flex;flex-direction:column;align-items:center;gap:6px;margin-bottom:16px;font-size:0.78rem;">
+      <div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center;">
+        <span><strong style="color:#4a90d9;">6 HR</strong> Update Frequency</span>
+        <span><strong style="color:#4a90d9;">600+</strong> Active Pilots</span>
+      </div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center;">
+        <span><strong style="color:#4a90d9;">5</strong> Interconnected Sites</span>
+        <span><strong style="color:#4a90d9;">24/7</strong> Information Access</span>
+      </div>
     </div>
   </div>
-</section>
+</aside>
+
+</div><!-- /content-layout-wrapper -->
+
+<!-- ═══ Site Footer ═══ -->
+<footer id="site-footer">
+  <p style="font-size:0.8rem;margin:0 0 6px;">
+    &copy; 2026 Pilots for HIMS Reform. All rights reserved. |
+    <a href="https://pilotsforhimsreform.org/?page=terms.html">Terms</a> |
+    <a href="https://pilotsforhimsreform.org/?page=privacy.html">Privacy</a>
+  </p>
+  <p style="font-size:0.72rem;color:#556;margin:0 0 6px;">
+    Not affiliated with the FAA or official HIMS Program. For educational purposes only.
+  </p>
+  <p style="font-size:0.68rem;color:#445;margin:0;font-family:monospace;">
+    Build #46 | 3/6/2026, 10:25:38 UTC | Next update in under 6 hours
+  </p>
+</footer>
 
 <script>
 function toggleSection(id) {
@@ -986,4 +1090,4 @@ function bindTocToggle() {
 
 </body>
 </html>
-<!-- Build #45 | himsprogram.info | 2026-03-06T09:43:02.502Z -->
+<!-- Build #46 | himsprogram.info | 2026-03-06T10:25:38.420Z -->

@@ -38,7 +38,7 @@ function fetchText(url, xhr = false) {
   const h = xhr ? '-H "X-Requested-With: XMLHttpRequest"' : '';
   try {
     return execSync(
-      `curl -s -L --connect-timeout 20 --max-time 30 -A "" ${h} "${url}"`,
+      `curl -s -L --connect-timeout 20 --max-time 30 --http1.1 ${h} "${url}"`,
       { maxBuffer: 5 * 1024 * 1024, encoding: 'utf-8' }
     );
   } catch (e) { return null; }

@@ -4,9 +4,6 @@ on:
   schedule:
     - cron: '0 */6 * * *'
   workflow_dispatch:
-  push:
-    branches:
-      - main
 
 jobs:
   mirror:
@@ -15,29 +12,33 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
       
       - name: Install dependencies
-        run: |
-          npm install
-          npx puppeteer browsers install chrome
+        run: npm install
+        env:
+          PUPPETEER_SKIP_DOWNLOAD: 'true'
       
-      - name: Fetch favicons from P4HR
+      - name: Install system Chrome
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y chromium-browser
+      
+      - name: Fetch favicons
         run: node scripts/fetch-favicon.js
         continue-on-error: true
       
-      - name: Mirror P4HR SPA
+      - name: Mirror site
         run: node scripts/mirror-p4hr.js
         env:
           GITHUB_RUN_NUMBER: ${{ github.run_number }}
+          PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium-browser
       
-      - name: Generate SEO files
+      - name: Generate SEO
         run: node scripts/generate-seo.js
         env:
           GITHUB_RUN_NUMBER: ${{ github.run_number }}
@@ -45,25 +46,12 @@ jobs:
       - name: Verify build
         run: |
           echo "=== Build Verification ==="
-          ls -lh *.html 2>/dev/null | head -10 || echo "No HTML files yet"
-          echo ""
-          echo "=== SEO Files ==="
-          ls -lh sitemap.xml robots.txt feed.xml _headers _redirects manifest.json 2>/dev/null || echo "SEO files generated"
+          ls -lh *.html 2>/dev/null | head -5
       
-      - name: Commit and push changes
+      - name: Commit changes
         run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
+          git config user.email "action@github.com"
+          git config user.name "GitHub Action"
           git add -A
-          git diff --quiet && git diff --staged --quiet || (
-            git commit -m "Mirror update: Build #${{ github.run_number }} - $(date -u '+%Y-%m-%d %H:%M UTC')" && 
-            git push
-          )
-      
-      - name: Deploy summary
-        run: |
-          echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- Build Number: #${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
-          echo "- Timestamp: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
-          echo "- Pages Mirrored: $(ls -1 *.html 2>/dev/null | wc -l)" >> $GITHUB_STEP_SUMMARY
+          git diff --quiet || git commit -m "Build ${{ github.run_number }}"
+          git push

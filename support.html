@@ -13,12 +13,12 @@
     <meta property="og:type" content="website"/>
     <meta property="og:url" content="https://himsprogram.info/support.html"/>
     <meta property="og:site_name" content="FAA HIMS Program Info — himsprogram.info"/>
-    <meta property="og:updated_time" content="2026-03-06T06:42:11.072Z"/>
+    <meta property="og:updated_time" content="2026-03-06T07:03:48.797Z"/>
     <meta name="twitter:card" content="summary"/>
     <meta name="twitter:title" content="HIMS Pilot Support &amp; Solidarity | Pilots for HIMS Reform"/>
     <meta name="twitter:description" content="You are not alone. Support and solidarity for pilots impacted by the FAA HIMS program. Your experience matters and your voice strengthens the reform movement."/>
     <script type="application/ld+json">
-    {"@context":"https://schema.org","@type":"WebPage","name":"HIMS Pilot Support & Solidarity | Pilots for HIMS Reform","description":"You are not alone. Support and solidarity for pilots impacted by the FAA HIMS program. Your experience matters and your voice strengthens the reform movement.","url":"https://himsprogram.info/support.html","dateModified":"2026-03-06T06:42:11.072Z","isPartOf":{"@type":"WebSite","name":"FAA HIMS Program Information","url":"https://himsprogram.info"}}
+    {"@context":"https://schema.org","@type":"WebPage","name":"HIMS Pilot Support & Solidarity | Pilots for HIMS Reform","description":"You are not alone. Support and solidarity for pilots impacted by the FAA HIMS program. Your experience matters and your voice strengthens the reform movement.","url":"https://himsprogram.info/support.html","dateModified":"2026-03-06T07:03:48.797Z","isPartOf":{"@type":"WebSite","name":"FAA HIMS Program Information","url":"https://himsprogram.info"}}
     </script>
 <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin/>
 <link rel="preconnect" href="https://assets.mailerlite.com" crossorigin/>
@@ -870,47 +870,125 @@
         Not affiliated with the FAA or official HIMS Program. For educational purposes only.
       </p>
       <p style="font-size:0.68rem;color:#445;margin-top:6px;font-family:monospace;">
-        Build #31 | 3/6/2026, 06:42:11 UTC | Next update in under 6 hours
+        Build #33 | 3/6/2026, 07:03:48 UTC | Next update in under 6 hours
       </p>
     </div>
   </div>
 </section>
 
 <script>
-// Theme toggle
-(function(){
-  var t=document.querySelector('#themeToggle,input[id*="theme"],#expandCollapseToggle');
-  if(!t) return;
-  function apply(dark){
-    document.documentElement.setAttribute('data-theme', dark?'dark':'light');
-    try{localStorage.setItem('p4hr-theme', dark?'dark':'light');}catch(e){}
+function toggleSection(id) {
+    const allSections = ['core', 'overview', 'advocacy', 'support', 'tools', 'library'];
+    allSections.forEach(sectionId => {
+      const section = document.getElementById(sectionId);
+      const arrow = document.querySelector(`a[onclick*='${sectionId}'] span.dropdown-arrow`);
+      const parentLi = document.querySelector(`a[onclick*='${sectionId}']`).parentElement;
+
+      if (sectionId === id) {
+        const isOpen = section.style.display === 'block';
+        parentLi.classList.toggle('active-section', !isOpen);
+        section.style.display = isOpen ? 'none' : 'block';
+        if (arrow) arrow.classList.toggle('rotated', !isOpen);
+      } else {
+        section.style.display = 'none';
+        if (arrow) arrow.classList.remove('rotated');
+        parentLi.classList.remove('active-section');
+      }
+    });
   }
-  t.addEventListener('change',function(){ apply(this.checked); });
-  try{ if(localStorage.getItem('p4hr-theme')==='dark'){ t.checked=true; apply(true); } }catch(e){}
-})();
-// Hamburger / mobile menu
-(function(){
-  var h=document.querySelector('.hamburger,#hamburger,[class*="hamburger"]');
-  var n=document.querySelector('nav,.nav-menu,[class*="nav-links"]');
-  if(h&&n){ h.addEventListener('click',function(){ n.classList.toggle('active'); h.classList.toggle('active'); }); }
-  // Close menu when clicking a link
-  if(n){ n.querySelectorAll('a[href]').forEach(function(a){
-    a.addEventListener('click',function(){ n.classList.remove('active'); if(h) h.classList.remove('active'); });
-  });}
-})();
-// Dropdown menus (expand/collapse on mobile)
-(function(){
-  document.querySelectorAll('nav li > a').forEach(function(a){
-    var sub = a.nextElementSibling;
-    if(!sub || sub.tagName !== 'UL' && !sub.classList.contains('dropdown')) return;
-    a.addEventListener('click', function(e){
-      if(window.innerWidth > 768) return; // desktop uses hover
-      e.preventDefault();
-      sub.classList.toggle('show');
+
+  function toggleExpandCollapse(checkbox) {
+    const sections = ['core', 'overview', 'advocacy', 'support', 'tools', 'library'];
+    sections.forEach(id => {
+      const section = document.getElementById(id);
+      const arrow = document.querySelector(`a[onclick*='${id}'] span.dropdown-arrow`);
+      const li = document.querySelector(`a[onclick*='${id}']`).parentElement;
+      if (checkbox.checked) {
+        section.style.display = 'block';
+        arrow?.classList.add('rotated');
+        li?.classList.add('active-section');
+      } else {
+        section.style.display = 'none';
+        arrow?.classList.remove('rotated');
+        li?.classList.remove('active-section');
+      }
+    });
+  }
+
+  function toggleThemeSwitch(checkbox) {
+    const html = document.documentElement;
+    const theme = checkbox.checked ? "dark" : "light";
+    html.setAttribute("data-theme", theme);
+
+    const mainContent = document.querySelector('main');
+    if (mainContent) {
+      mainContent.style.background = getComputedStyle(html).getPropertyValue('--bg-color');
+      mainContent.style.color = getComputedStyle(html).getPropertyValue('--text-color');
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const hamburgerToggle = document.getElementById("hamburger-toggle");
+    const closeMenuToggle = document.getElementById("close-menu-toggle");
+    const aside = document.querySelector("aside");
+    const body = document.body;
+
+    function openMenu() {
+      aside.classList.add("active");
+      body.classList.add("menu-open");
+      hamburgerToggle.style.display = "none";
+      closeMenuToggle.style.display = "flex";
+    }
+
+    function closeMenu() {
+      aside.classList.remove("active");
+      body.classList.remove("menu-open");
+      hamburgerToggle.style.display = "flex";
+      closeMenuToggle.style.display = "none";
+    }
+
+    if (hamburgerToggle && aside && closeMenuToggle) {
+      hamburgerToggle.addEventListener("click", openMenu);
+      closeMenuToggle.addEventListener("click", closeMenu);
+
+      const navLinks = document.querySelectorAll("aside nav ul li ul a");
+      navLinks.forEach(link => {
+        link.addEventListener("click", () => {
+          if (window.innerWidth <= 768) closeMenu();
+        });
+      });
+    }
+  });
+</script>
+<script>
+function bindTocToggle() {
+  // Toggle TOC sidebar (if you are using the ☰ button)
+  const tocToggle = document.getElementById("toc-toggle");
+  const tocSidebar = document.getElementById("toc-sidebar");
+  const tocClose = document.getElementById("toc-close");
+  if (tocToggle && tocSidebar && tocClose) {
+    tocToggle.addEventListener("click", function() {
+      tocSidebar.style.display = tocSidebar.style.display === "block" ? "none" : "block";
+    });
+    tocClose.addEventListener("click", function() {
+      tocSidebar.style.display = "none";
+    });
+  }
+
+  // Toggle submenus
+  const titles = document.querySelectorAll(".toc-title");
+  titles.forEach(function(title) {
+    title.addEventListener("click", function() {
+      const targetId = this.getAttribute("data-toc");
+      const submenu = document.getElementById(targetId);
+      if (submenu) {
+        submenu.style.display = submenu.style.display === "none" ? "block" : "none";
+      }
     });
   });
-})();
+}
 </script>
+
 </body>
 </html>
-<!-- Build #31 | himsprogram.info | 2026-03-06T06:42:11.072Z -->
+<!-- Build #33 | himsprogram.info | 2026-03-06T07:03:48.797Z -->

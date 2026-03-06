@@ -1,64 +1,96 @@
-name: Mirror P4HR Site
+name: Generate P4HR Mirror & Deploy
 
 on:
   schedule:
-    - cron: '0 */6 * * *'
-  workflow_dispatch:
+    - cron: '30 0,6,12,18 * * *'  # Every 6 hours at :30
+  workflow_dispatch:  # Manual trigger
+  push:
+    branches: [ main ]
+    paths:
+      - 'scripts/**'
+      - '.github/workflows/**'
 
 jobs:
-  mirror:
+  generate-and-deploy:
     runs-on: ubuntu-latest
-    
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+      actions: read
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      
-      - name: Install dependencies
-        run: npm ci
-        env:
-          PUPPETEER_SKIP_DOWNLOAD: 'true'
-      
-      - name: Install system Chrome
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y chromium-browser
-      
-      - name: Fetch favicons
-        run: node scripts/fetch-favicon.js
-        continue-on-error: true
-      
-      - name: Mirror site
-        run: node scripts/mirror-p4hr.js
-        env:
-          GITHUB_RUN_NUMBER: ${{ github.run_number }}
-          PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium-browser
-      
-      - name: Generate SEO
-        run: node scripts/generate-seo.js
-        env:
-          GITHUB_RUN_NUMBER: ${{ github.run_number }}
-      
-      - name: Verify build
-        run: |
-          echo "=== Build Verification ==="
-          ls -lh *.html 2>/dev/null | head -5
-          echo ""
-          echo "=== SEO Files ==="
-          ls -lh sitemap.xml robots.txt feed.xml 2>/dev/null
-      
-      - name: Commit and push changes
-        run: |
-          git config user.email "action@github.com"
-          git config user.name "GitHub Action"
-          git add -A
-          if git diff --staged --quiet; then
-            echo "No changes to commit"
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Generate mirror site
+      env:
+        MIRROR_DOMAIN: himsprogram.info
+        SOURCE_DOMAIN: pilotsforhimsreform.org
+      run: |
+        echo "🚀 Generating mirror for himsprogram.info..."
+        node scripts/mirror-p4hr.js
+
+    - name: Verify critical pages
+      run: |
+        echo "=== Critical Page Check ==="
+        MISSING=0
+        for page in index.html about.html faq.html contact.html entering-hims.html 404.html sitemap.xml robots.txt; do
+          if [ ! -f "$page" ]; then
+            echo "❌ MISSING: $page"
+            MISSING=$((MISSING + 1))
           else
-            git commit -m "Mirror update: Build #${{ github.run_number }} - $(date -u '+%Y-%m-%d %H:%M UTC')"
-            git push
+            SIZE=$(wc -c < "$page")
+            echo "✓ $page ($SIZE bytes)"
           fi
+        done
+        echo ""
+        echo "=== Image Assets ==="
+        ls -la images/ 2>/dev/null || echo "⚠ No images directory"
+        echo ""
+        echo "=== Total Pages ==="
+        echo "$(ls -1 *.html 2>/dev/null | wc -l) HTML files generated"
+        if [ $MISSING -gt 3 ]; then
+          echo "::error::Too many critical pages missing. Aborting."
+          exit 1
+        fi
+
+    - name: Commit generated content
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "P4HR Mirror Bot"
+        
+        # Stage all generated files
+        git add *.html *.xml *.txt CNAME images/ 2>/dev/null || true
+        
+        if git diff --staged --quiet; then
+          echo "📌 No content changes detected"
+        else
+          PAGES=$(ls -1 *.html 2>/dev/null | wc -l)
+          git commit -m "Mirror update #${{ github.run_number }} — ${PAGES} pages — $(date -u '+%Y-%m-%d %H:%M UTC')"
+          git push
+        fi
+
+    - name: Setup GitHub Pages
+      uses: actions/configure-pages@v4
+
+    - name: Upload Pages artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: '.'
+
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4

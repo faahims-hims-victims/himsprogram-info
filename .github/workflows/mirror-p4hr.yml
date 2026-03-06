@@ -47,11 +47,18 @@ jobs:
         run: |
           echo "=== Build Verification ==="
           ls -lh *.html 2>/dev/null | head -5
+          echo ""
+          echo "=== SEO Files ==="
+          ls -lh sitemap.xml robots.txt feed.xml 2>/dev/null
       
-      - name: Commit changes
+      - name: Commit and push changes
         run: |
           git config user.email "action@github.com"
           git config user.name "GitHub Action"
           git add -A
-          git diff --quiet || git commit -m "Build ${{ github.run_number }}"
-          git push
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Mirror update: Build #${{ github.run_number }} - $(date -u '+%Y-%m-%d %H:%M UTC')"
+            git push
+          fi

@@ -1,4 +1,3 @@
-# Updated to use setup-node v3
 name: Mirror P4HR Site
 
 on:

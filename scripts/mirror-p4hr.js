@@ -284,7 +284,7 @@ const mirrorCSS = `
   }
   #main-content {
     max-width: 100% !important;
-    overflow-x: hidden !important;
+    overflow: hidden !important;
   }
 
   /* Resource card styles */
@@ -330,7 +330,8 @@ const mirrorCSS = `
     right: 340px !important;
   }
   button#toc-toggle,
-  button[onclick*="toc-sidebar"] {
+  button[onclick*="toc-sidebar"],
+  button[style*="position:fixed"][style*="right:20px"] {
     right: 340px !important;
   }
   @media (max-width: 1080px) {
@@ -432,6 +433,24 @@ const shellAfter = `
 </div>
 
 ${p4hrScripts}
+
+<script>
+// Close nav sidebar after any link click (desktop TOC + mobile nav)
+document.addEventListener('click', function(e) {
+  var link = e.target.closest('aside nav a[href]');
+  if (link && link.getAttribute('href') !== '#') {
+    var aside = document.querySelector('aside.active');
+    if (aside) {
+      aside.classList.remove('active');
+      document.body.classList.remove('menu-open');
+      var h = document.getElementById('hamburger-toggle');
+      var c = document.getElementById('close-menu-toggle');
+      if (h) h.style.display = 'flex';
+      if (c) c.style.display = 'none';
+    }
+  }
+});
+</script>
 
 </body>
 </html>`;

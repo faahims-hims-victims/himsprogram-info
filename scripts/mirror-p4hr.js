@@ -270,9 +270,21 @@ const mirrorCSS = `
   #mirror-resource-network::-webkit-scrollbar-track { background: transparent; }
   #mirror-resource-network::-webkit-scrollbar-thumb { background: #2a3f55; border-radius: 3px; }
 
-  /* Push main content left to make room for the fixed panel */
+  /* Constrain entire layout to leave room for the fixed panel */
+  .container {
+    width: calc(100vw - 320px) !important;
+    max-width: calc(100vw - 320px) !important;
+  }
+  body {
+    overflow-x: hidden;
+  }
+  main {
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+  }
   #main-content {
-    margin-right: 320px !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
   }
 
   /* Resource card styles */
@@ -307,8 +319,27 @@ const mirrorCSS = `
       max-height: unset;
       overflow-y: visible;
     }
-    #main-content {
-      margin-right: 0 !important;
+    .container {
+      width: 100% !important;
+      max-width: 100% !important;
+    }
+  }
+
+  /* Push page TOC sidebars left of the resource network panel */
+  #toc-sidebar {
+    right: 340px !important;
+  }
+  button#toc-toggle,
+  button[onclick*="toc-sidebar"] {
+    right: 340px !important;
+  }
+  @media (max-width: 1080px) {
+    #toc-sidebar {
+      right: 20px !important;
+    }
+    button#toc-toggle,
+    button[onclick*="toc-sidebar"] {
+      right: 20px !important;
     }
   }
 
@@ -319,7 +350,6 @@ const mirrorCSS = `
     }
   }
 </style>`;
-
 shellBefore = shellBefore.replace('</head>', mirrorCSS + '\n</head>');
 
 // Shell AFTER content: extract real P4HR scripts + add network footer

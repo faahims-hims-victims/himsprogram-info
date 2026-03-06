@@ -183,6 +183,8 @@ function rewriteLinks(html) {
 
   // Files (PDFs, etc.): /files/X → absolute P4HR URL (not mirrored)
   r = r.replace(/href="\/files\//g, `href="${SOURCE_URL}/files/`);
+  // Also catch relative file links (no leading slash) in content fragments
+  r = r.replace(/href="files\//g, `href="${SOURCE_URL}/files/`);
 
   // Remaining loadPage JS calls → direct navigation
   r = r.replace(/loadPage\('([^']+)'\)/g, "window.location.href='/$1'");
@@ -211,9 +213,26 @@ shellBefore = shellBefore.replace(/G-WYLY7LQ0PE/g, 'G-MIRROR-DISABLED');
 // Remove the original canonical (we inject per-page)
 shellBefore = shellBefore.replace(/<link\s+rel="canonical"\s+href="[^"]*"\s*\/?\s*>/g, '');
 
-// Shell AFTER content: hardcoded network footer + basic scripts
-// (P4HR's network footer is JS-generated, not in static HTML, so we build our own)
+// Shell AFTER content: extract real P4HR scripts + add network footer
 const YEAR = new Date().getFullYear();
+
+// Extract the actual P4HR JavaScript functions from the shell
+// These include: toggleSection, toggleExpandCollapse, toggleThemeSwitch, openMenu, closeMenu
+let p4hrScripts = '';
+const scriptBlockMatch = shell.match(/function toggleSection[\s\S]*?<\/script>/);
+if (scriptBlockMatch) {
+  p4hrScripts = '<script>\n' + scriptBlockMatch[0];
+  console.log('   ✓ Extracted P4HR scripts (toggleSection, toggleExpandCollapse, toggleThemeSwitch, openMenu, closeMenu)');
+} else {
+  console.warn('   ⚠ Could not extract P4HR scripts — toggles/dropdowns may not work');
+}
+
+// Also extract the bindTocToggle function if present
+const tocMatch = shell.match(/function bindTocToggle[\s\S]*?<\/script>/);
+if (tocMatch) {
+  p4hrScripts += '\n<script>\n' + tocMatch[0];
+}
+
 const shellAfter = `
 </div><!-- /main-content -->
 
@@ -264,41 +283,8 @@ const shellAfter = `
   </div>
 </section>
 
-<script>
-// Theme toggle
-(function(){
-  var t=document.querySelector('#themeToggle,input[id*="theme"],#expandCollapseToggle');
-  if(!t) return;
-  function apply(dark){
-    document.documentElement.setAttribute('data-theme', dark?'dark':'light');
-    try{localStorage.setItem('p4hr-theme', dark?'dark':'light');}catch(e){}
-  }
-  t.addEventListener('change',function(){ apply(this.checked); });
-  try{ if(localStorage.getItem('p4hr-theme')==='dark'){ t.checked=true; apply(true); } }catch(e){}
-})();
-// Hamburger / mobile menu
-(function(){
-  var h=document.querySelector('.hamburger,#hamburger,[class*="hamburger"]');
-  var n=document.querySelector('nav,.nav-menu,[class*="nav-links"]');
-  if(h&&n){ h.addEventListener('click',function(){ n.classList.toggle('active'); h.classList.toggle('active'); }); }
-  // Close menu when clicking a link
-  if(n){ n.querySelectorAll('a[href]').forEach(function(a){
-    a.addEventListener('click',function(){ n.classList.remove('active'); if(h) h.classList.remove('active'); });
-  });}
-})();
-// Dropdown menus (expand/collapse on mobile)
-(function(){
-  document.querySelectorAll('nav li > a').forEach(function(a){
-    var sub = a.nextElementSibling;
-    if(!sub || sub.tagName !== 'UL' && !sub.classList.contains('dropdown')) return;
-    a.addEventListener('click', function(e){
-      if(window.innerWidth > 768) return; // desktop uses hover
-      e.preventDefault();
-      sub.classList.toggle('show');
-    });
-  });
-})();
-</script>
+${p4hrScripts}
+
 </body>
 </html>`;
 
@@ -438,8 +424,21 @@ for (let i = 0; i < sortedPages.length; i++) {
   if (content.includes('404: Page not found') && content.length < 500) {
     console.log('✗ 404'); failCount++; sleep(FETCH_DELAY); continue;
   }
-  if (content.trimStart().startsWith('<!DOCTYPE') || content.trimStart().startsWith('<!doctype')) {
-    console.log('⚠ redirect/full-page'); failCount++; sleep(FETCH_DELAY); continue;
+
+  // Some pages return full HTML documents instead of fragments
+  // Extract the <body> content in that case
+  let pageContent = content;
+  if (content.trimStart().startsWith('<!DOCTYPE') || content.trimStart().startsWith('<!doctype') ||
+      content.trimStart().startsWith('<html')) {
+    const bodyStart = content.indexOf('<body');
+    const bodyTagEnd = bodyStart > -1 ? content.indexOf('>', bodyStart) + 1 : -1;
+    const bodyClose = content.lastIndexOf('</body>');
+    if (bodyTagEnd > 0 && bodyClose > bodyTagEnd) {
+      pageContent = content.substring(bodyTagEnd, bodyClose);
+      console.log(`(full-page→extracted) `);
+    } else {
+      console.log('⚠ full-page, could not extract body'); failCount++; sleep(FETCH_DELAY); continue;
+    }
   }
 
   // Get SEO meta (from P4HR's PAGE_META or generate fallback)
@@ -448,7 +447,7 @@ for (let i = 0; i < sortedPages.length; i++) {
     description: `FAA HIMS program information — ${pageName.replace('.html', '')}.`
   };
 
-  const html = buildPage(pageName, content, meta);
+  const html = buildPage(pageName, pageContent, meta);
   fs.writeFileSync(pageName, html);
   generated.push(pageName);
   okCount++;

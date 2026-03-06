@@ -1,0 +1,25 @@
+# HIMS Program Information
+# Build: 28
+# Updated: 2026-03-06T05:47:52.553Z
+
+User-agent: *
+Allow: /
+
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 0.5
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 0.5
+
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+Sitemap: https://himsprogram.info/sitemap.xml
+Sitemap: https://himsprogram.info/feed.xml
+
+Host: https://himsprogram.info

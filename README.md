@@ -24,7 +24,7 @@ The FAA HIMS program governs psychiatric oversight and medical certification for
 
 The HIMS program has long claimed an 85% long-term abstinence rate and a 9-to-1 return on investment — figures that have been cited in congressional testimony and used to justify the program's expansion into mental health oversight. **These claims have never been independently verified.**
 
-When Congress mandated an independent review under the FAA Reauthorization Act of 2018, the **National Academies of Sciences, Engineering, and Medicine** found **"no solid evidence to support HIMS's claims of success"** — because the FAA and ALPA declined to provide the requested outcome data. The program's self-reported success rates remain unsubstantiated, yet they continue to be used to shape policy affecting tens of thousands of aviation professionals.
+When Congress mandated an independent review under the FAA Reauthorization Act of 2018, the **National Academies of Sciences, Engineering, and Medicine** found **"no solid evidence to support HIMS's claims of success"** ([full report](https://nap.nationalacademies.org/catalog/26880)) — because the FAA and ALPA declined to provide the requested outcome data. The program's self-reported success rates remain unsubstantiated, yet they continue to be used to shape policy affecting tens of thousands of aviation professionals.
 
 > *"[HIMS] doesn't look that great, and it certainly doesn't look like something you want everybody to emulate."*
 > — **Dr. Richard Frank**, Director of the Brookings Institution Center on Health Policy and lead of the National Academies study ([New York Times Magazine](https://www.nytimes.com/2025/03/18/magazine/airline-pilots-mental-health-faa.html))
@@ -32,21 +32,21 @@ When Congress mandated an independent review under the FAA Reauthorization Act o
 This lack of transparency has real consequences. Without reliable data on outcomes, costs, or alternatives, pilots and controllers cannot make informed decisions about their own health care. Aviation professionals facing substance use or mental health challenges deserve access to clear, honest information — not a system built on unverified claims and institutional pressure.
 
 > *"I followed every rule. I never relapsed. But they treated me like I had no voice. Reform is not optional — it's overdue."*
-> — Anonymous Pilot
+> — Anonymous Pilot, [Pilots for HIMS Reform](https://pilotsforhimsreform.org/?page=stories.html)
 
-The FAA's own **Mental Health Aviation Rulemaking Committee** acknowledged in its April 2024 report that fear of certificate or clearance loss is the most significant barrier preventing aviation professionals from seeking mental health treatment — a finding that applies equally to pilots and air traffic controllers. When the system itself discourages people from seeking help, the safety argument collapses.
+The FAA's own **Mental Health Aviation Rulemaking Committee** acknowledged in its [April 2024 report](https://www.faa.gov/sites/faa.gov/files/Mental_Health_ARC_Final_Report_RELEASED.pdf) that fear of certificate or clearance loss is the most significant barrier preventing aviation professionals from seeking mental health treatment — a finding that applies equally to pilots and air traffic controllers. When the system itself discourages people from seeking help, the safety argument collapses.
 
 Key findings from independent reviews:
 
-- **Unsubstantiated effectiveness claims** — HIMS's self-reported 85% success rate and 9:1 ROI have never been validated by any independent body. The National Academies concluded there is "no solid evidence" to support them (NAS, 2023)
-- **HIMS reaches only ~1.5%** of pilots, while research suggests **13–15%** may have a substance use disorder — a gap the National Academies attributed in part to career-consequence fears (NAS, 2023)
-- **60% of pilots** have delayed or foregone medical care due to concerns about their aeromedical status (Hoffman et al., *Journal of Occupational & Environmental Medicine*, 2019)
-- **Pilots routinely conceal** mental health conditions because disclosing therapy or medication could mean losing their license — a pattern documented by **Reuters** (Dec. 2025) and the **DOT Office of Inspector General** (July 2023)
-- **First-year costs of $8,000 to $15,000** out-of-pocket, not including lost income during grounding, create financial barriers that further discourage voluntary participation (Wikipedia / multiple sources)
-- In *Petitt v. Delta Air Lines*, an Administrative Law Judge ruled it **improper for an airline to weaponize** the HIMS process to obtain blind compliance through fear of career destruction
+- **Unsubstantiated effectiveness claims** — HIMS's self-reported 85% success rate and 9:1 ROI have never been validated by any independent body. The National Academies concluded there is "no solid evidence" to support them ([NAS, 2023](https://nap.nationalacademies.org/catalog/26880))
+- **HIMS reaches only ~1.5%** of pilots, while research suggests **13–15%** may have a substance use disorder — a gap the National Academies attributed in part to career-consequence fears ([NAS, 2023](https://nap.nationalacademies.org/catalog/26880))
+- **60% of pilots** have delayed or foregone medical care due to concerns about their aeromedical status ([Hoffman et al., *JOEM*, 2019](https://journals.lww.com/joem/abstract/2019/04000/healthcare_avoidance_behavior_among_pilots.4.aspx))
+- **Pilots routinely conceal** mental health conditions because disclosing therapy or medication could mean losing their license — a pattern documented by [**Reuters** (Dec. 2025)](https://www.reuters.com/investigates/special-report/aviation-pilots-mental-health/) and the [**DOT Office of Inspector General** (July 2023)](https://www.oig.dot.gov/sites/default/files/FAA%20Pilot%20Mental%20Health%20Final%20Report_07.12.2023.pdf)
+- **First-year costs of $8,000 to $15,000** out-of-pocket, not including lost income during grounding, create financial barriers that further discourage voluntary participation ([Wikipedia](https://en.wikipedia.org/wiki/Human_Intervention_Motivation_Study#Costs_and_leverage) / multiple sources)
+- In [*Petitt v. Delta Air Lines*](https://en.wikipedia.org/wiki/Karlene_Petitt#Legal_proceedings), an Administrative Law Judge ruled it **improper for an airline to weaponize** the HIMS process to obtain blind compliance through fear of career destruction
 
 > *"If you threaten a pilot with taking away his wings, it's like threatening a doctor with taking away his stethoscope. That's a lot of leverage."*
-> — **Dr. Lynn Hankes**, addiction treatment specialist, explaining why HIMS's unverified success rates cannot be replicated in the general population — because they depend on coercion, not clinical excellence
+> — **Dr. Lynn Hankes**, addiction treatment specialist ([Wikipedia](https://en.wikipedia.org/wiki/Human_Intervention_Motivation_Study#Costs_and_leverage)), explaining why HIMS's unverified success rates cannot be replicated in the general population — because they depend on coercion, not clinical excellence
 
 **Our goal is not to discourage treatment — it is the opposite.** We believe that when aviation professionals have access to transparent, evidence-based information about their options, they are more likely to seek help early, engage meaningfully in their care, and make decisions that protect both their health and public safety. Informed consent requires honest information, and that is what this site exists to provide.
 
@@ -158,9 +158,9 @@ For security concerns: [SECURITY.md](SECURITY.md)
 - **National Academies of Sciences, Engineering, and Medicine** (2023). *[Substance Misuse Programs in Commercial Aviation: Safety First](https://nap.nationalacademies.org/catalog/26880)*. Washington, DC: The National Academies Press.
 - **DOT Office of Inspector General** (2023). *[FAA Pilot Mental Health Final Report](https://www.oig.dot.gov/sites/default/files/FAA%20Pilot%20Mental%20Health%20Final%20Report_07.12.2023.pdf)*.
 - **FAA Mental Health Aviation Rulemaking Committee** (2024). *[Final Report](https://www.faa.gov/sites/faa.gov/files/Mental_Health_ARC_Final_Report_RELEASED.pdf)*.
-- **Reuters** (Dec. 2025). Investigation into pilot mental health disclosure and financial consequences of grounding.
-- **New York Times Magazine** (Mar. 2025). "How Airline Pilots Are Incentivized to Hide Their Mental Illness."
-- **Hoffman et al.** (2019). Healthcare avoidance behavior among pilots. *Journal of Occupational & Environmental Medicine*.
+- **Reuters** (Dec. 2025). [Investigation into pilot mental health disclosure and financial consequences of grounding](https://www.reuters.com/investigates/special-report/aviation-pilots-mental-health/).
+- **New York Times Magazine** (Mar. 2025). [How Airline Pilots Are Incentivized to Hide Their Mental Illness](https://www.nytimes.com/2025/03/18/magazine/airline-pilots-mental-health-faa.html).
+- **Hoffman et al.** (2019). [Healthcare avoidance behavior among pilots](https://journals.lww.com/joem/abstract/2019/04000/healthcare_avoidance_behavior_among_pilots.4.aspx). *Journal of Occupational & Environmental Medicine*.
 - **Wikipedia**: [Human Intervention Motivation Study](https://en.wikipedia.org/wiki/Human_Intervention_Motivation_Study) — comprehensive, independently sourced article with 64 citations.
 
 ---

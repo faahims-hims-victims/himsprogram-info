@@ -277,6 +277,10 @@ const shellAfter = `
         <strong style="display:block;margin-bottom:6px;">Recovery Resources</strong>
         <small style="color:#8899aa;">Treatment facilities, success stories, and rehabilitation support for aviation professionals</small>
       </a>
+      <a href="https://aeromedicalcompass.org" style="display:block;background:#162332;padding:18px;border-radius:8px;text-decoration:none;color:#fff;border:1px solid #2a3f55;">
+        <strong style="display:block;margin-bottom:6px;">Aeromedical Compass</strong>
+        <small style="color:#8899aa;">Independent AME directory and aeromedical guidance for pilots and controllers</small>
+      </a>
       <a href="https://pilotsforhimsreform.org" style="display:block;background:#162332;padding:18px;border-radius:8px;text-decoration:none;color:#fff;border:1px solid #4a90d9;">
         <strong style="display:block;margin-bottom:6px;color:#7cb9ff;">★ Reform Advocacy (Main Site)</strong>
         <small style="color:#8899aa;">Official Pilots for HIMS Reform organization leading policy change efforts</small>
@@ -285,7 +289,7 @@ const shellAfter = `
     <div style="display:flex;justify-content:center;gap:24px;margin-bottom:20px;flex-wrap:wrap;">
       <span style="font-size:0.85rem;"><strong style="color:#4a90d9;">6 HR</strong> Update Frequency</span>
       <span style="font-size:0.85rem;"><strong style="color:#4a90d9;">600+</strong> Active Pilots</span>
-      <span style="font-size:0.85rem;"><strong style="color:#4a90d9;">4</strong> Interconnected Sites</span>
+      <span style="font-size:0.85rem;"><strong style="color:#4a90d9;">5</strong> Interconnected Sites</span>
       <span style="font-size:0.85rem;"><strong style="color:#4a90d9;">24/7</strong> Information Access</span>
     </div>
     <div style="text-align:center;padding-top:20px;border-top:1px solid #2a3f55;">

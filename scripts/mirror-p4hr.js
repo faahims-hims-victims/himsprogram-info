@@ -202,6 +202,10 @@ function rewriteLinks(html) {
   // Images: /images/X → /images/X (keep local — they're downloaded)
   // No rewrite needed for /images/ since we download them locally.
 
+   // Content images not in our local /images/ set → absolute P4HR URL
+  r = r.replace(/src="images\//g, `src="${SOURCE_URL}/images/`);
+  r = r.replace(/src="\/images\/(?!P4HR-Newest|fb\.|x\.|truthsocial|favicon|apple-touch|web-app|site\.web)/g, `src="${SOURCE_URL}/images/`);
+  
   // Files (PDFs, etc.): /files/X → absolute P4HR URL (not mirrored)
   r = r.replace(/href="\/files\//g, `href="${SOURCE_URL}/files/`);
   // Also catch relative file links (no leading slash) in content fragments
@@ -329,7 +333,36 @@ while ((scriptMatch = scriptRe.exec(betweenMcAndBody)) !== null) {
     if (lastDiv > 0) { contentEndOffset = lastDiv + '</div>'.length; break; }
   }
 }
-const homepageContent = rewriteLinks(betweenMcAndBody.substring(0, contentEndOffset));
+let homepageContent = rewriteLinks(betweenMcAndBody.substring(0, contentEndOffset));
+
+// Fix network stats pulled from main site
+homepageContent = homepageContent.replace(
+  /<strong[^>]*>4<\/strong> Interconnected Sites/,
+  '<strong style="color:#4a90d9;">5</strong> Interconnected Sites'
+);
+homepageContent = homepageContent.replace(
+  /<strong[^>]*>600\+<\/strong> Active Pilots/,
+  '<strong style="color:#4a90d9;">600+</strong> Active Members'
+);
+homepageContent = homepageContent.replace(
+  /Information Access/,
+  'Real-Time Intelligence'
+);
+homepageContent = homepageContent.replace(
+  /Fresh content every 6 hours[^<]*/,
+  'Real-time legal case tracking | Active airline monitoring | Exposed HIMS program data | Community-driven intelligence'
+);
+
+// Inject Aeromedical Compass into the main-site network grid
+homepageContent = homepageContent.replace(
+  /<a[^>]*href="https:\/\/pilotsforhimsreform\.org"[^>]*>\s*<[^>]*>★ Reform Advocacy/,
+  `<a href="https://aeromedicalcompass.org" style="display:block;background:#162332;padding:18px;border-radius:8px;text-decoration:none;color:#fff;border:1px solid #2a3f55;">
+        <strong style="display:block;margin-bottom:6px;">Aeromedical Compass</strong>
+        <small style="color:#8899aa;">Independent AME directory and aeromedical guidance for pilots and controllers</small>
+      </a>
+      <a href="https://pilotsforhimsreform.org" style="display:block;background:#162332;padding:18px;border-radius:8px;text-decoration:none;color:#fff;border:1px solid #4a90d9;">
+        <strong style="display:block;margin-bottom:6px;color:#7cb9ff;">★ Reform Advocacy`
+);
 
 console.log(`   ✓ Template ready`);
 console.log(`     Shell before: ${shellBefore.length} bytes`);

@@ -25,7 +25,7 @@ jobs:
       
       - name: Install dependencies
         run: |
-          npm ci
+          npm install
           npx puppeteer browsers install chrome
       
       - name: Fetch favicons from P4HR

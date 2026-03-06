@@ -1,0 +1,70 @@
+name: Mirror P4HR Site
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: |
+          npm ci
+          npx puppeteer browsers install chrome
+      
+      - name: Fetch favicons from P4HR
+        run: node scripts/fetch-favicon.js
+        continue-on-error: true
+      
+      - name: Mirror P4HR SPA
+        run: node scripts/mirror-p4hr.js
+        env:
+          GITHUB_RUN_NUMBER: ${{ github.run_number }}
+      
+      - name: Generate SEO files
+        run: node scripts/generate-seo.js
+        env:
+          GITHUB_RUN_NUMBER: ${{ github.run_number }}
+      
+      - name: Verify build
+        run: |
+          echo "=== Build Verification ==="
+          ls -lh *.html 2>/dev/null | head -10 || echo "No HTML files yet"
+          echo ""
+          echo "=== SEO Files ==="
+          ls -lh sitemap.xml robots.txt feed.xml _headers _redirects manifest.json 2>/dev/null || echo "SEO files generated"
+      
+      - name: Commit and push changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add -A
+          git diff --quiet && git diff --staged --quiet || (
+            git commit -m "Mirror update: Build #${{ github.run_number }} - $(date -u '+%Y-%m-%d %H:%M UTC')" && 
+            git push
+          )
+      
+      - name: Deploy summary
+        run: |
+          echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- Build Number: #${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Timestamp: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "- Pages Mirrored: $(ls -1 *.html 2>/dev/null | wc -l)" >> $GITHUB_STEP_SUMMARY

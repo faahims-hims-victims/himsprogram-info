@@ -1,25 +1,16 @@
-# HIMS Program Information
-# Build: 28
-# Updated: 2026-03-06T05:47:52.553Z
+# himsprogram.info — Pilots for HIMS Reform network
+# Generated: 2026-03-06T06:42:11.072Z
 
 User-agent: *
 Allow: /
-
-User-agent: Googlebot
-Allow: /
-Crawl-delay: 0.5
-
-User-agent: Bingbot
-Allow: /
-Crawl-delay: 0.5
-
-User-agent: AhrefsBot
-Disallow: /
-
-User-agent: SemrushBot
-Disallow: /
+Disallow: /.github/
+Disallow: /scripts/
+Disallow: /node_modules/
 
 Sitemap: https://himsprogram.info/sitemap.xml
-Sitemap: https://himsprogram.info/feed.xml
 
-Host: https://himsprogram.info
+User-agent: Googlebot
+Crawl-delay: 1
+
+User-agent: Bingbot
+Crawl-delay: 2

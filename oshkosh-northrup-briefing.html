@@ -13,12 +13,12 @@
     <meta property="og:type" content="website"/>
     <meta property="og:url" content="https://himsprogram.info/oshkosh-northrup-briefing.html"/>
     <meta property="og:site_name" content="FAA HIMS Program Info — himsprogram.info"/>
-    <meta property="og:updated_time" content="2026-03-06T11:11:50.111Z"/>
+    <meta property="og:updated_time" content="2026-03-06T11:26:51.347Z"/>
     <meta name="twitter:card" content="summary"/>
     <meta name="twitter:title" content="FAA Northrup Responds to HIMS Reform | Pilots for HIMS Reform"/>
     <meta name="twitter:description" content="At Oshkosh, Pilots for HIMS Reform directly questioned Dr. Northrup about HIMS oversight. Her response confirmed the need for structural program reform."/>
     <script type="application/ld+json">
-    {"@context":"https://schema.org","@type":"WebPage","name":"FAA Northrup Responds to HIMS Reform | Pilots for HIMS Reform","description":"At Oshkosh, Pilots for HIMS Reform directly questioned Dr. Northrup about HIMS oversight. Her response confirmed the need for structural program reform.","url":"https://himsprogram.info/oshkosh-northrup-briefing.html","dateModified":"2026-03-06T11:11:50.111Z","isPartOf":{"@type":"WebSite","name":"FAA HIMS Program Information","url":"https://himsprogram.info"}}
+    {"@context":"https://schema.org","@type":"WebPage","name":"FAA Northrup Responds to HIMS Reform | Pilots for HIMS Reform","description":"At Oshkosh, Pilots for HIMS Reform directly questioned Dr. Northrup about HIMS oversight. Her response confirmed the need for structural program reform.","url":"https://himsprogram.info/oshkosh-northrup-briefing.html","dateModified":"2026-03-06T11:26:51.347Z","isPartOf":{"@type":"WebSite","name":"FAA HIMS Program Information","url":"https://himsprogram.info"}}
     </script>
 <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin/>
 <link rel="preconnect" href="https://assets.mailerlite.com" crossorigin/>
@@ -572,7 +572,7 @@
   }
   #main-content {
     max-width: 100% !important;
-    overflow-x: hidden !important;
+    overflow: hidden !important;
   }
 
   /* Resource card styles */
@@ -618,7 +618,8 @@
     right: 340px !important;
   }
   button#toc-toggle,
-  button[onclick*="toc-sidebar"] {
+  button[onclick*="toc-sidebar"],
+  button[style*="position:fixed"][style*="right:20px"] {
     right: 340px !important;
   }
   @media (max-width: 1080px) {
@@ -906,7 +907,7 @@
         Not affiliated with the FAA or official HIMS Program.
       </p>
       <p style="font-size:0.64rem;color:#445;margin:0;font-family:monospace;">
-        Build #48 | 3/6/2026, 11:11:50 UTC
+        Build #49 | 3/6/2026, 11:26:51 UTC
       </p>
     </div>
   </div>
@@ -1025,6 +1026,24 @@ function bindTocToggle() {
 }
 </script>
 
+<script>
+// Close nav sidebar after any link click (desktop TOC + mobile nav)
+document.addEventListener('click', function(e) {
+  var link = e.target.closest('aside nav a[href]');
+  if (link && link.getAttribute('href') !== '#') {
+    var aside = document.querySelector('aside.active');
+    if (aside) {
+      aside.classList.remove('active');
+      document.body.classList.remove('menu-open');
+      var h = document.getElementById('hamburger-toggle');
+      var c = document.getElementById('close-menu-toggle');
+      if (h) h.style.display = 'flex';
+      if (c) c.style.display = 'none';
+    }
+  }
+});
+</script>
+
 </body>
 </html>
-<!-- Build #48 | himsprogram.info | 2026-03-06T11:11:50.111Z -->
+<!-- Build #49 | himsprogram.info | 2026-03-06T11:26:51.347Z -->

@@ -13,12 +13,12 @@
     <meta property="og:type" content="website"/>
     <meta property="og:url" content="https://himsprogram.info/beyond-hims-reform.html"/>
     <meta property="og:site_name" content="FAA HIMS Program Info — himsprogram.info"/>
-    <meta property="og:updated_time" content="2026-03-06T10:48:26.613Z"/>
+    <meta property="og:updated_time" content="2026-03-06T11:11:50.111Z"/>
     <meta name="twitter:card" content="summary"/>
     <meta name="twitter:title" content="Beyond HIMS: Comprehensive FAA Reform | Pilots for HIMS Reform"/>
     <meta name="twitter:description" content="HIMS reform is just the start. Pilots for HIMS Reform now targets the entire FAA psychiatric oversight system including SSRI monitoring and mental health"/>
     <script type="application/ld+json">
-    {"@context":"https://schema.org","@type":"WebPage","name":"Beyond HIMS: Comprehensive FAA Reform | Pilots for HIMS Reform","description":"HIMS reform is just the start. Pilots for HIMS Reform now targets the entire FAA psychiatric oversight system including SSRI monitoring and mental health","url":"https://himsprogram.info/beyond-hims-reform.html","dateModified":"2026-03-06T10:48:26.613Z","isPartOf":{"@type":"WebSite","name":"FAA HIMS Program Information","url":"https://himsprogram.info"}}
+    {"@context":"https://schema.org","@type":"WebPage","name":"Beyond HIMS: Comprehensive FAA Reform | Pilots for HIMS Reform","description":"HIMS reform is just the start. Pilots for HIMS Reform now targets the entire FAA psychiatric oversight system including SSRI monitoring and mental health","url":"https://himsprogram.info/beyond-hims-reform.html","dateModified":"2026-03-06T11:11:50.111Z","isPartOf":{"@type":"WebSite","name":"FAA HIMS Program Information","url":"https://himsprogram.info"}}
     </script>
 <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin/>
 <link rel="preconnect" href="https://assets.mailerlite.com" crossorigin/>
@@ -558,9 +558,21 @@
   #mirror-resource-network::-webkit-scrollbar-track { background: transparent; }
   #mirror-resource-network::-webkit-scrollbar-thumb { background: #2a3f55; border-radius: 3px; }
 
-  /* Push main content left to make room for the fixed panel */
+  /* Constrain entire layout to leave room for the fixed panel */
+  .container {
+    width: calc(100vw - 320px) !important;
+    max-width: calc(100vw - 320px) !important;
+  }
+  body {
+    overflow-x: hidden;
+  }
+  main {
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+  }
   #main-content {
-    margin-right: 320px !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
   }
 
   /* Resource card styles */
@@ -595,8 +607,27 @@
       max-height: unset;
       overflow-y: visible;
     }
-    #main-content {
-      margin-right: 0 !important;
+    .container {
+      width: 100% !important;
+      max-width: 100% !important;
+    }
+  }
+
+  /* Push page TOC sidebars left of the resource network panel */
+  #toc-sidebar {
+    right: 340px !important;
+  }
+  button#toc-toggle,
+  button[onclick*="toc-sidebar"] {
+    right: 340px !important;
+  }
+  @media (max-width: 1080px) {
+    #toc-sidebar {
+      right: 20px !important;
+    }
+    button#toc-toggle,
+    button[onclick*="toc-sidebar"] {
+      right: 20px !important;
     }
   }
 
@@ -881,7 +912,7 @@
         Not affiliated with the FAA or official HIMS Program.
       </p>
       <p style="font-size:0.64rem;color:#445;margin:0;font-family:monospace;">
-        Build #47 | 3/6/2026, 10:48:26 UTC
+        Build #48 | 3/6/2026, 11:11:50 UTC
       </p>
     </div>
   </div>
@@ -1002,4 +1033,4 @@ function bindTocToggle() {
 
 </body>
 </html>
-<!-- Build #47 | himsprogram.info | 2026-03-06T10:48:26.613Z -->
+<!-- Build #48 | himsprogram.info | 2026-03-06T11:11:50.111Z -->

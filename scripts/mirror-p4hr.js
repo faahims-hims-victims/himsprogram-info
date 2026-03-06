@@ -46,7 +46,7 @@ function fetchText(url, xhr = false) {
 
 function fetchBinary(url, dest) {
   try {
-    execSync(`curl -s -L --connect-timeout 15 --max-time 20 -o "${dest}" "${url}"`);
+    execSync(`curl -s -L --connect-timeout 15 --max-time 30 -A "Mozilla/5.0 (compatible; P4HRMirrorBot/1.0)" -o "${dest}" "${url}"`);
     const stat = fs.statSync(dest);
     return stat.size > 0;
   } catch (e) { return false; }
@@ -82,8 +82,9 @@ for (const asset of ASSETS) {
   // Only download if missing or older than 24 hours
   let needsDownload = true;
   if (fs.existsSync(dest)) {
-    const age = Date.now() - fs.statSync(dest).mtimeMs;
-    if (age < 24 * 60 * 60 * 1000) needsDownload = false;
+    const stat = fs.statSync(dest);
+    const age = Date.now() - stat.mtimeMs;
+    if (age < 24 * 60 * 60 * 1000 && stat.size > 100) needsDownload = false;
   }
   if (needsDownload) {
     const ok = fetchBinary(`${SOURCE_URL}/images/${asset}`, dest);
@@ -151,7 +152,9 @@ Object.keys(pageMeta).forEach(p => allPages.add(p));
 
 // Known extra pages referenced in homepage content
 ['emergency-toolkit.html', 'hims-voices-project.html', 'subscribe.html',
-  'p4hr-act-2026.html', 'wings-of-reform-launch.html'].forEach(p => allPages.add(p));
+  'p4hr-act-2026.html', 'wings-of-reform-launch.html',
+  'bio-mike-danford.html', 'bio-maurice-macewen.html', 'bio-diego-garcia.html'
+].forEach(p => allPages.add(p));
 
 // Remove externals and special pages
 ['donate.html'].forEach(p => allPages.delete(p));

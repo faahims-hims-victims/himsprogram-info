@@ -13,12 +13,12 @@
     <meta property="og:type" content="website"/>
     <meta property="og:url" content="https://himsprogram.info/training-slides.html"/>
     <meta property="og:site_name" content="FAA HIMS Program Info — himsprogram.info"/>
-    <meta property="og:updated_time" content="2026-03-06T19:07:03.609Z"/>
+    <meta property="og:updated_time" content="2026-03-06T23:43:48.745Z"/>
     <meta name="twitter:card" content="summary"/>
     <meta name="twitter:title" content="HIMS Training Slides: What They Teach | Pilots for HIMS Reform"/>
     <meta name="twitter:description" content="Training materials from FAA HIMS program sessions. See how doctors, airlines, and peer monitors are trained to manage pilots in the system."/>
     <script type="application/ld+json">
-    {"@context":"https://schema.org","@type":"WebPage","name":"HIMS Training Slides: What They Teach | Pilots for HIMS Reform","description":"Training materials from FAA HIMS program sessions. See how doctors, airlines, and peer monitors are trained to manage pilots in the system.","url":"https://himsprogram.info/training-slides.html","dateModified":"2026-03-06T19:07:03.609Z","isPartOf":{"@type":"WebSite","name":"FAA HIMS Program Information","url":"https://himsprogram.info"}}
+    {"@context":"https://schema.org","@type":"WebPage","name":"HIMS Training Slides: What They Teach | Pilots for HIMS Reform","description":"Training materials from FAA HIMS program sessions. See how doctors, airlines, and peer monitors are trained to manage pilots in the system.","url":"https://himsprogram.info/training-slides.html","dateModified":"2026-03-06T23:43:48.745Z","isPartOf":{"@type":"WebSite","name":"FAA HIMS Program Information","url":"https://himsprogram.info"}}
     </script>
 <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin/>
 <link rel="preconnect" href="https://assets.mailerlite.com" crossorigin/>
@@ -542,6 +542,12 @@
 <!-- End MailerLite Universal -->
 
 <style id="mirror-enhancements">
+  /* FIX 1: Hamburger + close buttons above the mirror banner */
+  #hamburger-toggle,
+  #close-menu-toggle {
+    z-index: 10001 !important;
+    top: 52px !important;
+  }
   /* Fixed resource network panel — right side, doesn't scroll with content */
   #mirror-resource-network {
     position: fixed;
@@ -570,9 +576,24 @@
     max-width: 100% !important;
     overflow-x: hidden !important;
   }
+  /* FIX 4: Prevent content from running under resource panel */
   #main-content {
     max-width: 100% !important;
     overflow: hidden !important;
+    box-sizing: border-box !important;
+    padding-right: 16px !important;
+  }
+  #main-content > * {
+    max-width: 100% !important;
+    overflow-wrap: break-word !important;
+    word-wrap: break-word !important;
+  }
+  /* Force page-level footers to flow normally (not float/overlap) */
+  #main-content footer {
+    clear: both !important;
+    float: none !important;
+    position: static !important;
+    width: 100% !important;
   }
 
   /* Resource card styles */
@@ -610,6 +631,9 @@
     .container {
       width: 100% !important;
       max-width: 100% !important;
+    }
+    #main-content {
+      padding-right: 0 !important;
     }
   }
 
@@ -875,7 +899,7 @@
         Not affiliated with the FAA or official HIMS Program.
       </p>
       <p style="font-size:0.64rem;color:#445;margin:0;font-family:monospace;">
-        Build #51 | 3/6/2026, 19:07:03 UTC
+        Build #52 | 3/6/2026, 23:43:48 UTC
       </p>
     </div>
   </div>
@@ -995,12 +1019,14 @@ function bindTocToggle() {
 </script>
 
 <script>
-// Close nav sidebar after any link click (desktop TOC + mobile nav)
+// FIX 2: Close mobile nav sidebar after selecting a link
 document.addEventListener('click', function(e) {
-  var link = e.target.closest('aside nav a[href]');
-  if (link && link.getAttribute('href') !== '#') {
-    var aside = document.querySelector('aside.active');
-    if (aside) {
+  var link = e.target.closest('aside a');
+  if (!link) return;
+  var href = link.getAttribute('href');
+  if (href && href !== '#' && !href.startsWith('javascript:')) {
+    var aside = document.querySelector('aside');
+    if (aside && aside.classList.contains('active')) {
       aside.classList.remove('active');
       document.body.classList.remove('menu-open');
       var h = document.getElementById('hamburger-toggle');
@@ -1010,8 +1036,26 @@ document.addEventListener('click', function(e) {
     }
   }
 });
+
+// Also close on sub-nav link clicks (handles onclick handlers)
+document.addEventListener('DOMContentLoaded', function() {
+  var subLinks = document.querySelectorAll('aside nav ul li ul li a');
+  subLinks.forEach(function(link) {
+    link.addEventListener('click', function() {
+      var aside = document.querySelector('aside');
+      if (aside) {
+        aside.classList.remove('active');
+        document.body.classList.remove('menu-open');
+        var h = document.getElementById('hamburger-toggle');
+        var c = document.getElementById('close-menu-toggle');
+        if (h) h.style.display = 'flex';
+        if (c) c.style.display = 'none';
+      }
+    });
+  });
+});
 </script>
 
 </body>
 </html>
-<!-- Build #51 | himsprogram.info | 2026-03-06T19:07:03.609Z -->
+<!-- Build #52 | himsprogram.info | 2026-03-06T23:43:48.745Z -->

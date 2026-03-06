@@ -35,13 +35,27 @@ console.log('══════════════════════�
 // ─── Utilities ──────────────────────────────────────────────────────────────
 
 function fetchText(url, xhr = false) {
-  const h = xhr ? '-H "X-Requested-With: XMLHttpRequest"' : '';
-  try {
-    return execSync(
-      `curl -s -L --connect-timeout 20 --max-time 30 --http1.1 ${h} "${url}"`,
-      { maxBuffer: 5 * 1024 * 1024, encoding: 'utf-8' }
-    );
-  } catch (e) { return null; }
+  const xc = xhr ? '-H "X-Requested-With: XMLHttpRequest"' : '';
+  const xw = xhr ? '--header="X-Requested-With: XMLHttpRequest"' : '';
+  const methods = [
+    { cmd: `curl -s -L --connect-timeout 10 --max-time 20 ${xc} "${url}"`, label: 'curl default' },
+    { cmd: `wget -q -O - --timeout=20 ${xw} "${url}"`, label: 'wget' },
+    { cmd: `curl -s -L --connect-timeout 10 --max-time 20 --http1.1 -A "" ${xc} "${url}"`, label: 'curl h1.1+noUA' },
+    { cmd: `curl -s -L --connect-timeout 10 --max-time 20 -x "http://pubproxy.com/api/proxy?format=txt&type=http" ${xc} "${url}"`, label: 'curl pubproxy' },
+    { cmd: `curl -s -L --connect-timeout 10 --max-time 25 -x "https://corsproxy.io/?${encodeURIComponent(url)}" "${url}"`, label: 'curl corsproxy' },
+    { cmd: `wget -q -O - --timeout=20 "https://api.allorigins.win/raw?url=${encodeURIComponent(url)}"`, label: 'wget allorigins' },
+  ];
+  for (let i = 0; i < methods.length; i++) {
+    try {
+      const result = execSync(methods[i].cmd, { maxBuffer: 5 * 1024 * 1024, encoding: 'utf-8', timeout: 30000 });
+      if (result && result.length > 200) {
+        if (i > 0) console.log(`   (fetch ok via ${methods[i].label})`);
+        return result;
+      }
+    } catch (e) { /* try next */ }
+    if (i < methods.length - 1) sleep(2000);
+  }
+  return null;
 }
 
 function fetchBinary(url, dest) {

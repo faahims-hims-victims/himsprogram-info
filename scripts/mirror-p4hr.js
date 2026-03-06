@@ -110,11 +110,15 @@ console.log('');
 // ═══════════════════════════════════════════════════════════════════════════
 // STEP 2: Fetch the SPA shell
 // ═══════════════════════════════════════════════════════════════════════════
-
 console.log('2. Fetching SPA shell...');
 const shell = fetchText(SOURCE_URL);
-if (!shell) { console.error('FATAL: Could not fetch shell'); process.exit(1); }
-console.log(`   ✓ ${shell.length} bytes\n`);
+if (!shell) {
+  try {
+    const dbg = execSync(`curl -v -L --connect-timeout 20 --max-time 30 -A "" "https://pilotsforhimsreform.org" 2>&1 | head -50`, { encoding: 'utf-8', maxBuffer: 5*1024*1024 });
+    console.log('DEBUG curl output:\n' + dbg);
+  } catch(e) { console.log('DEBUG error: ' + e.message); }
+  console.error('FATAL: Could not fetch shell'); process.exit(1);
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // STEP 3: Extract PAGE_META (SEO titles + descriptions for every page)

@@ -1,280 +1,545 @@
-const puppeteer = require('puppeteer');
+#!/usr/bin/env node
+/**
+ * mirror-p4hr.js (v2 — full static site generator)
+ *
+ * Replaces the old mirror-p4hr.js + generate-seo.js.
+ * Fetches pilotsforhimsreform.org SPA content and generates
+ * complete static HTML pages with working navigation, SEO, and local assets.
+ *
+ * Environment:
+ *   MIRROR_DOMAIN  (default: himsprogram.info)
+ *   SOURCE_DOMAIN  (default: pilotsforhimsreform.org)
+ */
+const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-const baseUrl = 'https://pilotsforhimsreform.org';
-const outputDir = '.';
-const buildNumber = process.env.GITHUB_RUN_NUMBER || Math.floor(Math.random() * 1000);
-const currentDateTime = new Date().toISOString();
+const MIRROR_DOMAIN = process.env.MIRROR_DOMAIN || 'himsprogram.info';
+const SOURCE_DOMAIN = process.env.SOURCE_DOMAIN || 'pilotsforhimsreform.org';
+const SOURCE_URL = `https://${SOURCE_DOMAIN}`;
+const MIRROR_URL = `https://${MIRROR_DOMAIN}`;
+const BUILD_NUMBER = process.env.GITHUB_RUN_NUMBER || '0';
+const BUILD_TIME = new Date().toISOString();
+const DISPLAY_TIME = new Date().toLocaleString('en-US', {
+  timeZone: 'UTC', year:'numeric', month:'numeric', day:'numeric',
+  hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false
+});
+const FETCH_DELAY = 500;
 
-const routes = [
-  { 
-    path: '/', 
-    output: 'index.html', 
-    priority: 1.0,
-    title: 'FAA HIMS Program Information & Reform | Official Advocacy Resource 2026',
-    description: 'Comprehensive FAA HIMS program information, requirements, reform initiatives, and pilot advocacy. Expert guidance on medical certification, treatment, AME selection, and return to flying. Updated hourly with latest policy changes.',
-    keywords: 'FAA HIMS program, HIMS program requirements, FAA medical certification, pilot medical certificate, HIMS AME, special issuance medical, aviation substance abuse, pilot recovery program, FAA HIMS reform, pilot advocacy, medical certificate reinstatement, HIMS treatment facilities, aviation medical examiner, pilot rehabilitation, FAA aerospace medicine'
-  },
-  { 
-    path: '/about', 
-    output: 'about.html', 
-    priority: 0.9,
-    title: 'About HIMS Program Reform | Pilots for HIMS Advocacy & Transparency',
-    description: 'Mission to reform FAA HIMS program through transparency, accountability, and fairness. Learn about pilot advocacy efforts, policy reform initiatives, and why the HIMS program needs change.',
-    keywords: 'HIMS reform, pilot advocacy, FAA transparency, HIMS program criticism, aviation medical reform, pilot rights, FAA accountability'
-  },
-  { 
-    path: '/stories', 
-    output: 'stories.html', 
-    priority: 0.95,
-    title: 'Real Pilot HIMS Stories | Experiences with FAA Medical Certification Process',
-    description: 'Authentic pilot experiences navigating the FAA HIMS program. Read real stories of medical certification challenges, recovery journeys, and successful returns to flying.',
-    keywords: 'HIMS pilot stories, pilot experiences, HIMS testimonials, aviation recovery stories, pilot medical certification journey, HIMS program challenges, pilot rehabilitation success'
-  },
-  { 
-    path: '/reform', 
-    output: 'reform.html', 
-    priority: 0.95,
-    title: 'HIMS Program Reform Initiatives | FAA Policy Changes & Advocacy Efforts',
-    description: 'Current FAA HIMS program reform initiatives, proposed policy changes, transparency efforts, and advocacy for fair treatment of pilots in recovery.',
-    keywords: 'HIMS reform initiatives, FAA policy changes, HIMS program improvements, aviation medical advocacy, pilot rights advocacy, FAA transparency initiatives'
-  },
-  { 
-    path: '/advocacy', 
-    output: 'advocacy.html', 
-    priority: 0.9,
-    title: 'Pilot Advocacy & HIMS Support | Legal Resources & Rights Protection',
-    description: 'Comprehensive advocacy resources for pilots in HIMS. Legal guidance, rights protection, policy analysis, and support for navigating FAA medical certification.',
-    keywords: 'pilot advocacy, HIMS legal support, pilot rights, FAA medical law, aviation attorney resources, pilot legal rights'
-  },
-  { 
-    path: '/legal', 
-    output: 'legal.html', 
-    priority: 0.85,
-    title: 'HIMS Legal Resources | FAA Medical Certification Law & Appeals Process',
-    description: 'Legal resources for pilots dealing with FAA HIMS requirements, medical denials, appeals, and aviation medical law. Find qualified aviation attorneys.',
-    keywords: 'HIMS legal resources, FAA medical law, aviation attorney, medical certification appeal, pilot legal rights, FAA denial appeal'
-  },
-  { 
-    path: '/resources', 
-    output: 'resources.html', 
-    priority: 0.85,
-    title: 'HIMS Program Resources | Complete FAA Medical Certification Guide',
-    description: 'Comprehensive FAA HIMS program resources: treatment facilities, HIMS AME directory, monitoring requirements, testing protocols, and certification procedures.',
-    keywords: 'HIMS resources, FAA medical certification guide, HIMS AME directory, treatment facilities, monitoring requirements'
-  },
-  { 
-    path: '/media', 
-    output: 'media.html', 
-    priority: 0.8,
-    title: 'HIMS Media Coverage | Aviation Medical News, Press Releases & Updates',
-    description: 'Latest media coverage of FAA HIMS program reform, pilot advocacy news, aviation medical policy changes, and press releases.',
-    keywords: 'HIMS media, aviation news, pilot advocacy press, FAA medical updates, HIMS program news'
-  },
-  { 
-    path: '/contact', 
-    output: 'contact.html', 
-    priority: 0.7,
-    title: 'Contact HIMS Reform Advocates | Get Support & Information',
-    description: 'Contact Pilots for HIMS Reform for advocacy support, program guidance, media inquiries, and reform collaboration opportunities.',
-    keywords: 'contact HIMS reform, pilot advocacy contact, HIMS support'
-  }
+console.log('═══════════════════════════════════════════════════════════');
+console.log(`  P4HR Mirror Generator — ${MIRROR_DOMAIN}`);
+console.log(`  Source: ${SOURCE_DOMAIN} | Build #${BUILD_NUMBER}`);
+console.log(`  Time: ${DISPLAY_TIME} UTC`);
+console.log('═══════════════════════════════════════════════════════════\n');
+
+// ─── Utilities ──────────────────────────────────────────────────────────────
+
+function fetchText(url, xhr = false) {
+  const h = xhr ? '-H "X-Requested-With: XMLHttpRequest"' : '';
+  try {
+    return execSync(
+      `curl -s -L --connect-timeout 20 --max-time 30 -A "Mozilla/5.0 (compatible; P4HRMirrorBot/1.0)" ${h} "${url}"`,
+      { maxBuffer: 5 * 1024 * 1024, encoding: 'utf-8' }
+    );
+  } catch (e) { return null; }
+}
+
+function fetchBinary(url, dest) {
+  try {
+    execSync(`curl -s -L --connect-timeout 15 --max-time 20 -o "${dest}" "${url}"`);
+    const stat = fs.statSync(dest);
+    return stat.size > 0;
+  } catch (e) { return false; }
+}
+
+function sleep(ms) { execSync(`sleep ${ms / 1000}`); }
+function esc(s) { return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// STEP 1: Download images, favicons, logos locally
+// ═══════════════════════════════════════════════════════════════════════════
+
+console.log('1. Downloading images & favicons...');
+const imagesDir = path.join(process.cwd(), 'images');
+if (!fs.existsSync(imagesDir)) fs.mkdirSync(imagesDir, { recursive: true });
+
+const ASSETS = [
+  'P4HR-Newest-Logo-Medium.png',
+  'fb.png',
+  'x.jpg',
+  'truthsocial.png',
+  'favicon.ico',
+  'favicon.svg',
+  'favicon-96x96.png',
+  'apple-touch-icon.png',
+  'web-app-manifest-192x192.png',
+  'web-app-manifest-512x512.png',
+  'site.webmanifest',
 ];
 
-async function mirrorSPA() {
-  console.log('\n=== HIMS PROGRAM INFO MIRROR ===');
-  console.log('Build #' + buildNumber);
-  console.log('Source: ' + baseUrl + '\n');
-
-  const browser = await puppeteer.launch({
-    headless: 'new',
-    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
-  });
-  
-  const page = await browser.newPage();
-  await page.setViewport({ width: 1920, height: 1080 });
-  await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36');
-  
-  for (const route of routes) {
-    const url = baseUrl + route.path;
-    console.log('Mirroring: ' + url);
-    
-    try {
-      await page.goto(url, { waitUntil: 'networkidle0', timeout: 60000 });
-      await page.waitForTimeout(5000);
-      
-      let html = await page.content();
-      html = enhanceSEO(html, route);
-      html = updateLinks(html);
-      html = addNetworkFooter(html);
-      
-      fs.writeFileSync(path.join(outputDir, route.output), html, 'utf8');
-      console.log('Saved: ' + route.output);
-      
-    } catch (error) {
-      console.error('Failed to mirror ' + url + ': ' + error.message);
-    }
+for (const asset of ASSETS) {
+  const dest = path.join(imagesDir, asset);
+  // Only download if missing or older than 24 hours
+  let needsDownload = true;
+  if (fs.existsSync(dest)) {
+    const age = Date.now() - fs.statSync(dest).mtimeMs;
+    if (age < 24 * 60 * 60 * 1000) needsDownload = false;
   }
-  
-  await browser.close();
-  console.log('\nMirror complete\n');
+  if (needsDownload) {
+    const ok = fetchBinary(`${SOURCE_URL}/images/${asset}`, dest);
+    console.log(`   ${ok ? '✓' : '✗'} ${asset}`);
+  } else {
+    console.log(`   · ${asset} (cached)`);
+  }
 }
 
-function enhanceSEO(html, route) {
-  const seoHead = `
-    <title>${route.title}</title>
-    <meta name="description" content="${route.description}">
-    <meta name="keywords" content="${route.keywords}">
-    <link rel="canonical" href="https://himsprogram.info/${route.output === 'index.html' ? '' : route.output}">
-    
-    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
-    <meta name="googlebot" content="index, follow, max-snippet:-1">
-    <meta name="bingbot" content="index, follow, max-snippet:-1">
-    <meta name="author" content="Pilots for HIMS Reform - Aviation Medical Advocacy">
-    <meta name="revisit-after" content="6 hours">
-    <meta name="distribution" content="global">
-    
-    <meta name="news_keywords" content="FAA HIMS program, pilot medical certification, aviation reform">
-    <meta name="article:published_time" content="${currentDateTime}">
-    <meta name="article:modified_time" content="${currentDateTime}">
-    <meta name="article:author" content="Pilots for HIMS Reform">
-    <meta name="article:section" content="Aviation Medical Certification">
-    
-    <meta property="og:type" content="article">
-    <meta property="og:url" content="https://himsprogram.info/${route.output === 'index.html' ? '' : route.output}">
-    <meta property="og:title" content="${route.title}">
-    <meta property="og:description" content="${route.description}">
-    <meta property="og:image" content="https://himsprogram.info/assets/icon-512.png">
-    <meta property="og:site_name" content="HIMS Program Information">
-    <meta property="og:updated_time" content="${currentDateTime}">
-    
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="${route.title}">
-    <meta name="twitter:description" content="${route.description}">
-    <meta name="twitter:image" content="https://himsprogram.info/assets/icon-512.png">
-    
-    <link rel="icon" href="/assets/favicon.ico">
-    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png">
-    <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
-    
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "MedicalWebPage",
-      "name": "${route.title}",
-      "description": "${route.description}",
-      "url": "https://himsprogram.info/${route.output === 'index.html' ? '' : route.output}",
-      "datePublished": "${currentDateTime}",
-      "dateModified": "${currentDateTime}",
-      "author": {
-        "@type": "Organization",
-        "name": "Pilots for HIMS Reform",
-        "url": "https://pilotsforhimsreform.org"
-      },
-      "about": {
-        "@type": "MedicalTherapy",
-        "name": "FAA HIMS Program",
-        "alternateName": "Human Intervention Motivation Study",
-        "description": "Federal Aviation Administration program for aviation professionals with substance use disorders"
-      },
-      "audience": {
-        "@type": "MedicalAudience",
-        "audienceType": "Commercial and Private Pilots"
-      }
-    }
-    </script>
-    
-    <meta name="build-number" content="${buildNumber}">
-    <meta name="last-updated" content="${currentDateTime}">
-    <meta name="update-frequency" content="Every 6 hours">
-`;
+// Fix the web manifest to reference our local paths
+const manifestPath = path.join(imagesDir, 'site.webmanifest');
+if (fs.existsSync(manifestPath)) {
+  try {
+    let manifest = fs.readFileSync(manifestPath, 'utf-8');
+    // Rewrite any absolute P4HR paths to local
+    manifest = manifest.replace(/https?:\/\/pilotsforhimsreform\.org\/images\//g, '/images/');
+    fs.writeFileSync(manifestPath, manifest);
+    console.log('   ✓ site.webmanifest paths updated');
+  } catch (e) { /* ignore */ }
+}
+console.log('');
 
-  return html.replace(/<\/head>/i, seoHead + '\n</head>');
+// ═══════════════════════════════════════════════════════════════════════════
+// STEP 2: Fetch the SPA shell
+// ═══════════════════════════════════════════════════════════════════════════
+
+console.log('2. Fetching SPA shell...');
+const shell = fetchText(SOURCE_URL);
+if (!shell) { console.error('FATAL: Could not fetch shell'); process.exit(1); }
+console.log(`   ✓ ${shell.length} bytes\n`);
+
+// ═══════════════════════════════════════════════════════════════════════════
+// STEP 3: Extract PAGE_META (SEO titles + descriptions for every page)
+// ═══════════════════════════════════════════════════════════════════════════
+
+console.log('3. Extracting PAGE_META...');
+const pageMeta = {};
+const metaBlock = shell.match(/const PAGE_META\s*=\s*\{([\s\S]*?)\n\s*\};/);
+if (metaBlock) {
+  const re = /'([^']+)':\s*\{\s*title:\s*'((?:[^'\\]|\\.)*)'\s*,\s*description:\s*'((?:[^'\\]|\\.)*)'\s*\}/g;
+  let m;
+  while ((m = re.exec(metaBlock[1])) !== null) {
+    pageMeta[m[1]] = {
+      title: m[2].replace(/\\'/g, "'"),
+      description: m[3].replace(/\\'/g, "'")
+    };
+  }
+}
+console.log(`   ✓ ${Object.keys(pageMeta).length} page meta entries\n`);
+
+// ═══════════════════════════════════════════════════════════════════════════
+// STEP 4: Build the complete page list
+// ═══════════════════════════════════════════════════════════════════════════
+
+console.log('4. Building page list...');
+const allPages = new Set();
+
+// From navigation
+const navRe = /loadPage\('([^']+)'\)/g;
+let nm;
+while ((nm = navRe.exec(shell)) !== null) allPages.add(nm[1]);
+
+// From PAGE_META
+Object.keys(pageMeta).forEach(p => allPages.add(p));
+
+// Known extra pages referenced in homepage content
+['emergency-toolkit.html', 'hims-voices-project.html', 'subscribe.html',
+  'p4hr-act-2026.html', 'wings-of-reform-launch.html'].forEach(p => allPages.add(p));
+
+// Remove externals and special pages
+['donate.html'].forEach(p => allPages.delete(p));
+[...allPages].filter(p => p.includes('://')).forEach(p => allPages.delete(p));
+
+console.log(`   ✓ ${allPages.size} pages to generate\n`);
+
+// ═══════════════════════════════════════════════════════════════════════════
+// STEP 5: Prepare the shell template
+// ═══════════════════════════════════════════════════════════════════════════
+
+console.log('5. Preparing template...');
+
+/**
+ * Rewrite all internal links from SPA format to static file format.
+ * Also rewrites image paths to local /images/ directory.
+ */
+function rewriteLinks(html) {
+  let r = html;
+
+  // Nav links: ?page=X.html → /X.html
+  r = r.replace(/href="\?page=([^"]+)"/g, 'href="/$1"');
+
+  // Remove SPA onclick handlers (href already works for navigation)
+  r = r.replace(/ onclick="loadPage\('[^']+'\);\s*window\.history\.pushState\(\{\},\s*'',\s*'\?page=[^']+'\);\s*return false;"/g, '');
+
+  // Images: /images/X → /images/X (keep local — they're downloaded)
+  // No rewrite needed for /images/ since we download them locally.
+
+  // Files (PDFs, etc.): /files/X → absolute P4HR URL (not mirrored)
+  r = r.replace(/href="\/files\//g, `href="${SOURCE_URL}/files/`);
+
+  // Remaining loadPage JS calls → direct navigation
+  r = r.replace(/loadPage\('([^']+)'\)/g, "window.location.href='/$1'");
+
+  // onclick ?page= → direct
+  r = r.replace(/window\.location\.href='\?page=([^']*)'/g, "window.location.href='/$1'");
+
+  // Any remaining href="?page=X" in content
+  r = r.replace(/href="\?page=([^"]+)"/g, 'href="/$1"');
+
+  return r;
 }
 
-function updateLinks(html) {
-  return html
-    .replace(/href="\/about"/g, 'href="/about.html"')
-    .replace(/href="\/mission"/g, 'href="/mission.html"')
-    .replace(/href="\/stories"/g, 'href="/stories.html"')
-    .replace(/href="\/reform"/g, 'href="/reform.html"')
-    .replace(/href="\/advocacy"/g, 'href="/advocacy.html"')
-    .replace(/href="\/legal"/g, 'href="/legal.html"')
-    .replace(/href="\/resources"/g, 'href="/resources.html"')
-    .replace(/href="\/media"/g, 'href="/media.html"')
-    .replace(/href="\/contact"/g, 'href="/contact.html"');
-}
+// Split shell at the main-content boundary
+const MC_TAG = '<div id="main-content">';
+const mcIdx = shell.indexOf(MC_TAG);
+if (mcIdx === -1) { console.error('FATAL: No main-content div found in shell'); process.exit(1); }
+const mcEnd = mcIdx + MC_TAG.length;
 
-function addNetworkFooter(html) {
-  const footer = `
-  <div style="background:linear-gradient(135deg,#f8f9fa,#e9ecef);padding:50px 20px;margin-top:60px;font-family:-apple-system,sans-serif">
-    <div style="max-width:1200px;margin:0 auto">
-      <h2 style="text-align:center;color:#1a365d;font-size:2em;margin-bottom:15px">Comprehensive HIMS Resource Network</h2>
-      <p style="text-align:center;max-width:800px;margin:0 auto 40px;color:#4a5568;font-size:1.1em;line-height:1.6">
-        Complete ecosystem of pilot advocacy, community support, and reform resources through interconnected network.
+// Shell BEFORE main-content: <html><head>...<body><nav>...<div id="main-content">
+let shellBefore = rewriteLinks(shell.substring(0, mcEnd));
+
+// Disable P4HR's Google Analytics (mirror should have its own or none)
+shellBefore = shellBefore.replace(/G-WYLY7LQ0PE/g, 'G-MIRROR-DISABLED');
+
+// Remove the original canonical (we inject per-page)
+shellBefore = shellBefore.replace(/<link\s+rel="canonical"\s+href="[^"]*"\s*\/?\s*>/g, '');
+
+// Shell AFTER content: hardcoded network footer + basic scripts
+// (P4HR's network footer is JS-generated, not in static HTML, so we build our own)
+const YEAR = new Date().getFullYear();
+const shellAfter = `
+</div><!-- /main-content -->
+
+<!-- P4HR Network Footer -->
+<section style="background:#0d1b2a;color:#ccc;padding:50px 20px 30px;font-family:'Arimo',sans-serif;">
+  <div style="max-width:1100px;margin:0 auto;">
+    <h2 style="color:#fff;text-align:center;margin-bottom:10px;font-size:1.4rem;">Comprehensive HIMS Resource Network</h2>
+    <p style="text-align:center;color:#aaa;margin-bottom:30px;font-size:0.95rem;">
+      Complete ecosystem of pilot advocacy, community support, and reform resources.
+    </p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;margin-bottom:30px;">
+      <a href="https://himsprogram.info" style="display:block;background:#162332;padding:18px;border-radius:8px;text-decoration:none;color:#fff;border:1px solid #2a3f55;">
+        <strong style="display:block;margin-bottom:6px;">Program Information</strong>
+        <small style="color:#8899aa;">Comprehensive FAA HIMS program details, requirements, and advocacy resources</small>
+      </a>
+      <a href="https://faahims.rehab" style="display:block;background:#162332;padding:18px;border-radius:8px;text-decoration:none;color:#fff;border:1px solid #2a3f55;">
+        <strong style="display:block;margin-bottom:6px;">Community Forum</strong>
+        <small style="color:#8899aa;">Active pilot community with 600+ members sharing real experiences and peer support</small>
+      </a>
+      <a href="https://faahimsprogram.com" style="display:block;background:#162332;padding:18px;border-radius:8px;text-decoration:none;color:#fff;border:1px solid #2a3f55;">
+        <strong style="display:block;margin-bottom:6px;">Recovery Resources</strong>
+        <small style="color:#8899aa;">Treatment facilities, success stories, and rehabilitation support for aviation professionals</small>
+      </a>
+      <a href="https://pilotsforhimsreform.org" style="display:block;background:#162332;padding:18px;border-radius:8px;text-decoration:none;color:#fff;border:1px solid #4a90d9;">
+        <strong style="display:block;margin-bottom:6px;color:#7cb9ff;">★ Reform Advocacy (Main Site)</strong>
+        <small style="color:#8899aa;">Official Pilots for HIMS Reform organization leading policy change efforts</small>
+      </a>
+    </div>
+    <div style="display:flex;justify-content:center;gap:24px;margin-bottom:20px;flex-wrap:wrap;">
+      <span style="font-size:0.85rem;"><strong style="color:#4a90d9;">6 HR</strong> Update Frequency</span>
+      <span style="font-size:0.85rem;"><strong style="color:#4a90d9;">600+</strong> Active Pilots</span>
+      <span style="font-size:0.85rem;"><strong style="color:#4a90d9;">4</strong> Interconnected Sites</span>
+      <span style="font-size:0.85rem;"><strong style="color:#4a90d9;">24/7</strong> Information Access</span>
+    </div>
+    <div style="text-align:center;padding-top:20px;border-top:1px solid #2a3f55;">
+      <p style="font-size:0.8rem;color:#778;">
+        © ${YEAR} Pilots for HIMS Reform. All rights reserved. |
+        <a href="/terms.html" style="color:#4a90d9;">Terms</a> |
+        <a href="/privacy.html" style="color:#4a90d9;">Privacy</a>
       </p>
-      
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;margin-bottom:40px">
-        <a href="https://himsprogram.info" style="background:white;padding:30px;border-radius:8px;text-decoration:none;border-left:4px solid #3182ce;box-shadow:0 4px 15px rgba(0,0,0,0.08)">
-          <h3 style="color:#1a365d;font-size:1.3em;margin-bottom:10px">Program Information</h3>
-          <p style="color:#4a5568;line-height:1.6">Comprehensive FAA HIMS program details, requirements, and advocacy resources updated every 6 hours</p>
-        </a>
-        
-        <a href="https://faahims.rehab" style="background:white;padding:30px;border-radius:8px;text-decoration:none;border-left:4px solid #38a169;box-shadow:0 4px 15px rgba(0,0,0,0.08)">
-          <h3 style="color:#1a365d;font-size:1.3em;margin-bottom:10px">Community Forum</h3>
-          <p style="color:#4a5568;line-height:1.6">Active pilot community with 600+ members sharing real experiences and peer support</p>
-        </a>
-        
-        <a href="https://pilotrecovery.org" style="background:white;padding:30px;border-radius:8px;text-decoration:none;border-left:4px solid #805ad5;box-shadow:0 4px 15px rgba(0,0,0,0.08)">
-          <h3 style="color:#1a365d;font-size:1.3em;margin-bottom:10px">Recovery Resources</h3>
-          <p style="color:#4a5568;line-height:1.6">Treatment facilities, success stories, and rehabilitation support for aviation professionals</p>
-        </a>
-        
-        <a href="https://pilotsforhimsreform.org" style="background:white;padding:30px;border-radius:8px;text-decoration:none;border-left:4px solid #e53e3e;box-shadow:0 4px 15px rgba(0,0,0,0.08)">
-          <h3 style="color:#1a365d;font-size:1.3em;margin-bottom:10px">Reform Advocacy</h3>
-          <p style="color:#4a5568;line-height:1.6">Official Pilots for HIMS Reform organization leading policy change efforts</p>
-        </a>
-      </div>
-      
-      <div style="background:white;padding:30px;border-radius:8px;border-top:4px solid #3182ce;box-shadow:0 4px 15px rgba(0,0,0,0.08)">
-        <h3 style="color:#1a365d;text-align:center;margin-bottom:20px;font-size:1.4em">Network Features</h3>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px;text-align:center">
-          <div>
-            <div style="font-size:2.5em;color:#3182ce;font-weight:bold;margin-bottom:5px">6 HR</div>
-            <div style="color:#4a5568;font-weight:600">Update Frequency</div>
-            <div style="font-size:0.9em;color:#718096">Automated content refresh</div>
-          </div>
-          <div>
-            <div style="font-size:2.5em;color:#38a169;font-weight:bold;margin-bottom:5px">600+</div>
-            <div style="color:#4a5568;font-weight:600">Active Pilots</div>
-            <div style="font-size:0.9em;color:#718096">Real community engagement</div>
-          </div>
-          <div>
-            <div style="font-size:2.5em;color:#805ad5;font-weight:bold;margin-bottom:5px">4</div>
-            <div style="color:#4a5568;font-weight:600">Interconnected Sites</div>
-            <div style="font-size:0.9em;color:#718096">Comprehensive coverage</div>
-          </div>
-          <div>
-            <div style="font-size:2.5em;color:#e53e3e;font-weight:bold;margin-bottom:5px">24/7</div>
-            <div style="color:#4a5568;font-weight:600">Information Access</div>
-            <div style="font-size:0.9em;color:#718096">Always available resources</div>
-          </div>
-        </div>
-      </div>
-      
-      <p style="text-align:center;margin-top:30px;color:#718096;font-size:0.95em">
-        Fresh content every 6 hours | Cross-site network | Pilot stories and advocacy | Community engagement
+      <p style="font-size:0.72rem;color:#556;margin-top:6px;">
+        Not affiliated with the FAA or official HIMS Program. For educational purposes only.
       </p>
-      <p style="text-align:center;opacity:0.7;font-size:0.85em;font-family:monospace;margin-top:15px;color:#4a5568">
-        Build #${buildNumber} | ${new Date(currentDateTime).toLocaleString('en-US', { timeZone: 'UTC' })} UTC | Next update in under 6 hours
+      <p style="font-size:0.68rem;color:#445;margin-top:6px;font-family:monospace;">
+        Build #${BUILD_NUMBER} | ${DISPLAY_TIME} UTC | Next update in under 6 hours
       </p>
     </div>
   </div>
-`;
+</section>
 
-  return html.replace(/<\/body>/i, footer + '\n</body>');
+<script>
+// Theme toggle
+(function(){
+  var t=document.querySelector('#themeToggle,input[id*="theme"],#expandCollapseToggle');
+  if(!t) return;
+  function apply(dark){
+    document.documentElement.setAttribute('data-theme', dark?'dark':'light');
+    try{localStorage.setItem('p4hr-theme', dark?'dark':'light');}catch(e){}
+  }
+  t.addEventListener('change',function(){ apply(this.checked); });
+  try{ if(localStorage.getItem('p4hr-theme')==='dark'){ t.checked=true; apply(true); } }catch(e){}
+})();
+// Hamburger / mobile menu
+(function(){
+  var h=document.querySelector('.hamburger,#hamburger,[class*="hamburger"]');
+  var n=document.querySelector('nav,.nav-menu,[class*="nav-links"]');
+  if(h&&n){ h.addEventListener('click',function(){ n.classList.toggle('active'); h.classList.toggle('active'); }); }
+  // Close menu when clicking a link
+  if(n){ n.querySelectorAll('a[href]').forEach(function(a){
+    a.addEventListener('click',function(){ n.classList.remove('active'); if(h) h.classList.remove('active'); });
+  });}
+})();
+// Dropdown menus (expand/collapse on mobile)
+(function(){
+  document.querySelectorAll('nav li > a').forEach(function(a){
+    var sub = a.nextElementSibling;
+    if(!sub || sub.tagName !== 'UL' && !sub.classList.contains('dropdown')) return;
+    a.addEventListener('click', function(e){
+      if(window.innerWidth > 768) return; // desktop uses hover
+      e.preventDefault();
+      sub.classList.toggle('show');
+    });
+  });
+})();
+</script>
+</body>
+</html>`;
+
+// Extract homepage content from the shell
+// The shell structure: <div id="main-content">[homepage content]</div>[scripts]</body>
+const bodyCloseIdx = shell.lastIndexOf('</body>');
+const betweenMcAndBody = shell.substring(mcEnd, bodyCloseIdx);
+
+// Find where homepage content ends and page-level scripts begin
+let contentEndOffset = betweenMcAndBody.length;
+const scriptRe = /\n<script>/g;
+let scriptMatch;
+while ((scriptMatch = scriptRe.exec(betweenMcAndBody)) !== null) {
+  const context = betweenMcAndBody.substring(Math.max(0, scriptMatch.index - 200), scriptMatch.index);
+  if (context.match(/<\/div>/g)?.length >= 2) {
+    const lastDiv = betweenMcAndBody.lastIndexOf('</div>', scriptMatch.index);
+    if (lastDiv > 0) { contentEndOffset = lastDiv + '</div>'.length; break; }
+  }
+}
+const homepageContent = rewriteLinks(betweenMcAndBody.substring(0, contentEndOffset));
+
+console.log(`   ✓ Template ready`);
+console.log(`     Shell before: ${shellBefore.length} bytes`);
+console.log(`     Shell after:  ${shellAfter.length} bytes`);
+console.log(`     Homepage:     ${homepageContent.length} bytes\n`);
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Page builder function
+// ═══════════════════════════════════════════════════════════════════════════
+
+function buildPage(pageName, content, meta) {
+  const title = meta?.title || `${pageName.replace(/[-_]/g, ' ').replace('.html', '')} | FAA HIMS Program Info`;
+  const desc = meta?.description || 'FAA HIMS program information and pilot advocacy resources.';
+  const canonical = pageName === 'index.html' ? MIRROR_URL + '/' : `${MIRROR_URL}/${pageName}`;
+  const p4hrLink = `${SOURCE_URL}/?page=${pageName}`;
+
+  // SEO meta block
+  const seo = `
+    <!-- Mirror SEO: ${MIRROR_DOMAIN} -->
+    <title>${esc(title)}</title>
+    <meta name="description" content="${esc(desc)}"/>
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large"/>
+    <link rel="canonical" href="${canonical}"/>
+    <meta property="og:title" content="${esc(title)}"/>
+    <meta property="og:description" content="${esc(desc)}"/>
+    <meta property="og:type" content="website"/>
+    <meta property="og:url" content="${canonical}"/>
+    <meta property="og:site_name" content="FAA HIMS Program Info — ${MIRROR_DOMAIN}"/>
+    <meta property="og:updated_time" content="${BUILD_TIME}"/>
+    <meta name="twitter:card" content="summary"/>
+    <meta name="twitter:title" content="${esc(title)}"/>
+    <meta name="twitter:description" content="${esc(desc)}"/>
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"WebPage","name":${JSON.stringify(title)},"description":${JSON.stringify(desc)},"url":"${canonical}","dateModified":"${BUILD_TIME}","isPartOf":{"@type":"WebSite","name":"FAA HIMS Program Information","url":"${MIRROR_URL}"}}
+    </script>`;
+
+  // Mirror identification banner
+  const banner = `<div id="mirror-banner" style="background:linear-gradient(135deg,#1a3a5c,#2563eb);color:#fff;text-align:center;padding:8px 16px;font-size:0.82rem;font-family:'Arimo',sans-serif;position:sticky;top:0;z-index:10000;box-shadow:0 2px 4px rgba(0,0,0,0.2);">
+    <strong>FAA HIMS Program Information</strong> — A
+    <a href="${SOURCE_URL}" style="color:#a5d8ff;text-decoration:underline;">Pilots for HIMS Reform</a> network site
+    <span style="margin-left:8px;">|</span>
+    <a href="${p4hrLink}" style="color:#a5d8ff;text-decoration:underline;margin-left:8px;">View on main site →</a>
+  </div>`;
+
+  // Start with the shell (head + nav)
+  let head = shellBefore;
+
+  // Strip original meta tags that we're replacing
+  head = head.replace(/<title>[^<]*<\/title>/g, '');
+  head = head.replace(/<meta\s+content="[^"]*"\s+property="og:title"\s*\/?\s*>/g, '');
+  head = head.replace(/<meta\s+content="[^"]*"\s+property="og:description"\s*\/?\s*>/g, '');
+  head = head.replace(/<meta\s+content="[^"]*"\s+property="og:url"\s*\/?\s*>/g, '');
+  head = head.replace(/<meta\s+name="description"\s+content="[^"]*"\s*\/?\s*>/g, '');
+  head = head.replace(/<meta\s+property="og:title"\s+content="[^"]*"\s*\/?\s*>/g, '');
+  head = head.replace(/<meta\s+property="og:description"\s+content="[^"]*"\s*\/?\s*>/g, '');
+  head = head.replace(/<meta\s+property="og:url"\s+content="[^"]*"\s*\/?\s*>/g, '');
+
+  // Inject our SEO block after <meta charset>
+  const charsetPos = head.indexOf('<meta charset');
+  if (charsetPos > 0) {
+    const afterCharset = head.indexOf('/>', charsetPos);
+    if (afterCharset > 0) {
+      head = head.substring(0, afterCharset + 2) + seo + head.substring(afterCharset + 2);
+    }
+  } else {
+    head = head.replace(/<head([^>]*)>/, (match) => match + seo);
+  }
+
+  // Inject banner after <body>
+  const bodyMatch = head.match(/<body[^>]*>/);
+  if (bodyMatch) {
+    const bodyEnd = head.indexOf(bodyMatch[0]) + bodyMatch[0].length;
+    head = head.substring(0, bodyEnd) + '\n' + banner + '\n' + head.substring(bodyEnd);
+  }
+
+  // Rewrite the content links
+  const rewrittenContent = rewriteLinks(content);
+
+  return `${head}\n${rewrittenContent}\n${shellAfter}\n<!-- Build #${BUILD_NUMBER} | ${MIRROR_DOMAIN} | ${BUILD_TIME} -->`;
 }
 
-mirrorSPA().catch(console.error);
+// ═══════════════════════════════════════════════════════════════════════════
+// STEP 6: Generate index.html (homepage)
+// ═══════════════════════════════════════════════════════════════════════════
+
+console.log('6. Generating index.html...');
+const indexMeta = {
+  title: `FAA HIMS Program Information & Reform | ${MIRROR_DOMAIN} — Advocacy Resource ${YEAR}`,
+  description: 'Independent FAA HIMS program information center. Pilot medical certification, HIMS requirements, reform advocacy. A Pilots for HIMS Reform network resource.'
+};
+const indexHtml = buildPage('index.html', homepageContent, indexMeta);
+fs.writeFileSync('index.html', indexHtml);
+console.log(`   ✓ index.html (${(indexHtml.length / 1024).toFixed(0)}K)\n`);
+
+// ═══════════════════════════════════════════════════════════════════════════
+// STEP 7: Generate all content pages
+// ═══════════════════════════════════════════════════════════════════════════
+
+console.log(`7. Generating ${allPages.size} content pages...\n`);
+let okCount = 0, failCount = 0;
+const generated = ['index.html'];
+const sortedPages = [...allPages].sort();
+
+for (let i = 0; i < sortedPages.length; i++) {
+  const pageName = sortedPages[i];
+  if (pageName === 'index.html') continue;
+
+  const shortName = pageName.length > 55 ? pageName.substring(0, 52) + '...' : pageName;
+  process.stdout.write(`   [${i + 1}/${sortedPages.length}] ${shortName} `);
+
+  const content = fetchText(`${SOURCE_URL}/${pageName}`, true);
+
+  // Validate the response
+  if (!content || content.length < 50) {
+    console.log('✗ empty'); failCount++; sleep(FETCH_DELAY); continue;
+  }
+  if (content.includes('404: Page not found') && content.length < 500) {
+    console.log('✗ 404'); failCount++; sleep(FETCH_DELAY); continue;
+  }
+  if (content.trimStart().startsWith('<!DOCTYPE') || content.trimStart().startsWith('<!doctype')) {
+    console.log('⚠ redirect/full-page'); failCount++; sleep(FETCH_DELAY); continue;
+  }
+
+  // Get SEO meta (from P4HR's PAGE_META or generate fallback)
+  const meta = pageMeta[pageName] || {
+    title: `${pageName.replace(/[-_]/g, ' ').replace('.html', '')} | FAA HIMS Program Information`,
+    description: `FAA HIMS program information — ${pageName.replace('.html', '')}.`
+  };
+
+  const html = buildPage(pageName, content, meta);
+  fs.writeFileSync(pageName, html);
+  generated.push(pageName);
+  okCount++;
+  console.log(`✓ (${(html.length / 1024).toFixed(0)}K)`);
+  sleep(FETCH_DELAY);
+}
+console.log(`\n   Result: ${okCount} generated, ${failCount} failed\n`);
+
+// ═══════════════════════════════════════════════════════════════════════════
+// STEP 8: Generate 404.html
+// ═══════════════════════════════════════════════════════════════════════════
+
+console.log('8. Generating 404.html...');
+const notFoundContent = `
+<section style="text-align:center;padding:80px 20px;font-family:'Arimo',sans-serif;">
+  <h1 style="font-size:4rem;color:#e74c3c;margin-bottom:0;">404</h1>
+  <h2 style="margin-top:8px;">Page Not Found</h2>
+  <p style="font-size:1.1rem;color:#666;max-width:600px;margin:20px auto;">
+    This page doesn't exist on this mirror. Try the
+    <a href="${SOURCE_URL}">main Pilots for HIMS Reform site</a>.
+  </p>
+  <div style="margin-top:30px;">
+    <a href="/" style="display:inline-block;padding:14px 28px;background:#1a3a5c;color:#fff;border-radius:6px;text-decoration:none;margin:8px;font-weight:600;">← Home</a>
+    <a href="${SOURCE_URL}" style="display:inline-block;padding:14px 28px;background:#2563eb;color:#fff;border-radius:6px;text-decoration:none;margin:8px;font-weight:600;">Visit Main Site →</a>
+  </div>
+  <div style="margin-top:40px;">
+    <h3>Popular Pages</h3>
+    <p>
+      <a href="/faq.html">FAQ</a> ·
+      <a href="/about.html">About</a> ·
+      <a href="/entering-hims.html">New Pilot Guide</a> ·
+      <a href="/emergency-toolkit.html">Emergency Toolkit</a> ·
+      <a href="/stories.html">Stories</a> ·
+      <a href="/news.html">News</a>
+    </p>
+  </div>
+</section>`;
+const nfHtml = buildPage('404.html', notFoundContent, {
+  title: 'Page Not Found | FAA HIMS Program Information',
+  description: 'The requested page was not found.'
+});
+fs.writeFileSync('404.html', nfHtml);
+generated.push('404.html');
+console.log('   ✓ 404.html\n');
+
+// ═══════════════════════════════════════════════════════════════════════════
+// STEP 9: Generate sitemap.xml
+// ═══════════════════════════════════════════════════════════════════════════
+
+console.log('9. Generating sitemap.xml...');
+const today = BUILD_TIME.split('T')[0];
+const highPri = new Set(['index.html', 'faq.html', 'about.html', 'entering-hims.html',
+  'emergency-toolkit.html', 'stories.html', 'faa-hims-program.html', 'aeropath.html', 'news.html']);
+const medPri = new Set(['legal.html', 'p4hr-act-2026.html', 'policy-reform.html', 'contact.html',
+  'our-team.html', 'resources.html', 'toolkit.html', 'testimonials.html', 'mission-vision.html']);
+
+const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${generated.filter(p => p !== '404.html').map(p => {
+    const loc = p === 'index.html' ? MIRROR_URL + '/' : `${MIRROR_URL}/${p}`;
+    const pri = p === 'index.html' ? '1.0' : highPri.has(p) ? '0.9' : medPri.has(p) ? '0.8' : '0.6';
+    return `  <url><loc>${loc}</loc><lastmod>${today}</lastmod><changefreq>daily</changefreq><priority>${pri}</priority></url>`;
+  }).join('\n')}
+</urlset>`;
+fs.writeFileSync('sitemap.xml', sitemapXml);
+console.log(`   ✓ sitemap.xml (${generated.length - 1} URLs)\n`);
+
+// ═══════════════════════════════════════════════════════════════════════════
+// STEP 10: Generate robots.txt
+// ═══════════════════════════════════════════════════════════════════════════
+
+console.log('10. Generating robots.txt...');
+fs.writeFileSync('robots.txt',
+  `# ${MIRROR_DOMAIN} — Pilots for HIMS Reform network\n# Generated: ${BUILD_TIME}\n\nUser-agent: *\nAllow: /\nDisallow: /.github/\nDisallow: /scripts/\nDisallow: /node_modules/\n\nSitemap: ${MIRROR_URL}/sitemap.xml\n\nUser-agent: Googlebot\nCrawl-delay: 1\n\nUser-agent: Bingbot\nCrawl-delay: 2\n`
+);
+console.log('   ✓ robots.txt\n');
+
+// ═══════════════════════════════════════════════════════════════════════════
+// STEP 11: Write CNAME
+// ═══════════════════════════════════════════════════════════════════════════
+
+fs.writeFileSync('CNAME', MIRROR_DOMAIN);
+console.log(`11. CNAME → ${MIRROR_DOMAIN}\n`);
+
+// ═══════════════════════════════════════════════════════════════════════════
+// DONE
+// ═══════════════════════════════════════════════════════════════════════════
+
+console.log('═══════════════════════════════════════════════════════════');
+console.log(`  BUILD COMPLETE — ${MIRROR_DOMAIN}`);
+console.log(`  Pages:  ${generated.length} (${failCount} failed)`);
+console.log(`  Assets: ${ASSETS.length} images/favicons`);
+console.log(`  Build:  #${BUILD_NUMBER} at ${DISPLAY_TIME} UTC`);
+console.log('═══════════════════════════════════════════════════════════');

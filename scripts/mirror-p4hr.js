@@ -115,12 +115,11 @@ function cleanPageContent(raw, pageName) {
     content = cleanedStyles + '\n' + content;
   }
 
-  // Move page footers to end of content
-  var footerMatch = content.match(/<footer[\s\S]*?<\/footer>/gi);
-  if (footerMatch) {
-    content = content.replace(/<footer[\s\S]*?<\/footer>/gi, '');
-    content = content + '\n' + footerMatch.join('\n');
-  }
+  // Remove duplicate copyright/disclaimer from page content
+  // (resource network panel already shows this)
+  content = content.replace(/<footer[\s\S]*?<\/footer>/gi, '');
+  content = content.replace(/<p[^>]*>[\s\S]*?© 20\d{2} Pilots for HIMS Reform[\s\S]*?<\/p>/gi, '');
+  content = content.replace(/<p[^>]*>[\s\S]*?Disclaimer:[\s\S]*?not constitute legal[\s\S]*?<\/p>/gi, '');
 
   return content;
 }
@@ -536,6 +535,12 @@ const shellAfter = `
 ${p4hrScripts}
 
 <script>
+// Fix hamburger position below banner
+var hb = document.getElementById('hamburger-toggle');
+if (hb) hb.style.top = '52px';
+var cb = document.getElementById('close-menu-toggle');
+if (cb) cb.style.top = '52px';
+
 // FIX 2: Close mobile nav sidebar after selecting a link
 document.addEventListener('click', function(e) {
   var link = e.target.closest('aside a');

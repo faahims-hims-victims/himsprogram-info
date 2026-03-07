@@ -295,6 +295,11 @@ shellBefore = shellBefore.replace(/<meta\s+name="robots"\s+content="[^"]*"\s*\/?
 shellBefore = shellBefore.replace(/<script type="application\/ld\+json">\s*\{[^}]*"@type"\s*:\s*"Organization"[\s\S]*?<\/script>/g, '');
 shellBefore = shellBefore.replace(/<script type="application\/ld\+json">\s*\{[^}]*"@type"\s*:\s*"WebSite"[\s\S]*?<\/script>/g, '');
 shellBefore = shellBefore.replace(/\n{3,}/g, '\n\n');
+// Strip shell layout rules that conflict with mirror enhancements
+shellBefore = shellBefore.replace(/#hamburger-toggle\s*\{[^}]*\}/g, '/* mirror-stripped */');
+shellBefore = shellBefore.replace(/#close-menu-toggle\s*\{[^}]*\}/g, '/* mirror-stripped */');
+shellBefore = shellBefore.replace(/@media[^{]*\{[^}]*#hamburger-toggle[^}]*\}[^}]*\}/g, '/* mirror-stripped */');
+shellBefore = shellBefore.replace(/@media[^{]*\{[^}]*#close-menu-toggle[^}]*\}[^}]*\}/g, '/* mirror-stripped */');
 
 // ─── Inject CSS for fixed resource network panel (CSS-only, no DOM changes) ─
 const mirrorCSS = `

@@ -82,25 +82,9 @@ function cleanPageContent(raw, pageName) {
 
   if (!isFullDoc && !hasEmbeddedHead) return content;
 
-  // Extract page-specific <style> blocks, strip conflicting rules
-  const styleBlocks = content.match(/<style[^>]*>[\s\S]*?<\/style>/gi) || [];
-  let cleanedStyles = styleBlocks.map(function(block) {
-    return block
-      .replace(/\bbody\s*\{[^}]*\}/g, '/* stripped */')
-      .replace(/\bhtml\s*\{[^}]*\}/g, '/* stripped */')
-      .replace(/\.container\s*\{[^}]*\}/g, '/* stripped */')
-      .replace(/\baside\s*\{[^}]*\}/g, '/* stripped */')
-      .replace(/\bnav\b[^{]*\{[^}]*\}/g, '/* stripped */')
-      .replace(/\bfooter\b[^{]*\{[^}]*\}/g, '/* stripped */')
-      .replace(/#hamburger-toggle[^{]*\{[^}]*\}/g, '/* stripped */')
-      .replace(/#close-menu-toggle[^{]*\{[^}]*\}/g, '/* stripped */')
-      .replace(/\.hamburger[^{]*\{[^}]*\}/g, '/* stripped */')
-      .replace(/\.close-btn[^{]*\{[^}]*\}/g, '/* stripped */')
-      .replace(/\.menu-logo[^{]*\{[^}]*\}/g, '/* stripped */')
-      .replace(/#main-content\s*\{[^}]*\}/g, '/* stripped */')
-      .replace(/[^{}]*position\s*:\s*(fixed|sticky)[^}]*\}/g, '/* stripped */')
-      .replace(/@media[^{]*\{[^}]*\}/g, '/* stripped */');
-  }).join('\n');
+  // Strip ALL embedded styles — shell already has layout CSS.
+  // Only preserve FAQ accordion and page-specific content styles.
+  let cleanedStyles = '';
 
   if (isFullDoc) {
     var bodyStart = content.indexOf('<body');
@@ -117,8 +101,9 @@ function cleanPageContent(raw, pageName) {
     console.log('(full-doc cleaned) ');
   }
 
-  // Strip remaining <head> sections and embedded GA tracking
+  // Strip remaining <head> sections, embedded styles, and GA tracking
   content = content.replace(/<head[\s\S]*?<\/head>/gi, '');
+  content = content.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
   content = content.replace(/<script[^>]*src="[^"]*googletagmanager[^"]*"[^>]*><\/script>/gi, '');
   content = content.replace(/<script>\s*window\.dataLayer[\s\S]*?<\/script>/gi, '');
 
@@ -427,6 +412,13 @@ const mirrorCSS = `
       right: 20px !important;
     }
   }
+
+  /* FAQ accordion styles (stripped from page content, re-added here) */
+  .faq-accordion { max-width: 800px; margin: 0 auto; }
+  .faq-item { margin-bottom: 10px; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; }
+  .faq-question { padding: 16px 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 600; background: #fff; }
+  .faq-question:hover { background: #f0f4f8; }
+  .faq-answer { display: none; padding: 16px 20px; background: #f9f9f9; border-top: 1px solid #eee; line-height: 1.6; }
 
   /* Mobile: hide panel entirely (nav sidebar takes priority) */
   @media (max-width: 768px) {

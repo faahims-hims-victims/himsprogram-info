@@ -80,7 +80,10 @@ function cleanPageContent(raw, pageName) {
       trimmed.startsWith('<html') || trimmed.startsWith('<head');
   const hasEmbeddedHead = content.includes('<head>') || content.includes('<head ');
 
-  if (!isFullDoc && !hasEmbeddedHead) return content;
+  if (!isFullDoc && !hasEmbeddedHead) {
+    content = content.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
+    return content;
+  }
 
   // Strip ALL embedded styles — shell already has layout CSS.
   // Only preserve FAQ accordion and page-specific content styles.
@@ -111,6 +114,14 @@ function cleanPageContent(raw, pageName) {
   if (cleanedStyles.trim().length > 50) {
     content = cleanedStyles + '\n' + content;
   }
+
+  // Move page footers to end of content
+  var footerMatch = content.match(/<footer[\s\S]*?<\/footer>/gi);
+  if (footerMatch) {
+    content = content.replace(/<footer[\s\S]*?<\/footer>/gi, '');
+    content = content + '\n' + footerMatch.join('\n');
+  }
+
   return content;
 }
 

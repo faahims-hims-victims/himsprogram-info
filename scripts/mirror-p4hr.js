@@ -86,9 +86,20 @@ function cleanPageContent(raw, pageName) {
   const styleBlocks = content.match(/<style[^>]*>[\s\S]*?<\/style>/gi) || [];
   let cleanedStyles = styleBlocks.map(function(block) {
     return block
-      .replace(/\bbody\s*\{[^}]*\}/g, '/* body rules stripped by mirror */')
-      .replace(/\bhtml\s*\{[^}]*\}/g, '/* html rules stripped by mirror */')
-      .replace(/\.container\s*\{[^}]*\}/g, '/* container rules stripped by mirror */');
+      .replace(/\bbody\s*\{[^}]*\}/g, '/* stripped */')
+      .replace(/\bhtml\s*\{[^}]*\}/g, '/* stripped */')
+      .replace(/\.container\s*\{[^}]*\}/g, '/* stripped */')
+      .replace(/\baside\s*\{[^}]*\}/g, '/* stripped */')
+      .replace(/\bnav\b[^{]*\{[^}]*\}/g, '/* stripped */')
+      .replace(/\bfooter\b[^{]*\{[^}]*\}/g, '/* stripped */')
+      .replace(/#hamburger-toggle[^{]*\{[^}]*\}/g, '/* stripped */')
+      .replace(/#close-menu-toggle[^{]*\{[^}]*\}/g, '/* stripped */')
+      .replace(/\.hamburger[^{]*\{[^}]*\}/g, '/* stripped */')
+      .replace(/\.close-btn[^{]*\{[^}]*\}/g, '/* stripped */')
+      .replace(/\.menu-logo[^{]*\{[^}]*\}/g, '/* stripped */')
+      .replace(/#main-content\s*\{[^}]*\}/g, '/* stripped */')
+      .replace(/[^{}]*position\s*:\s*(fixed|sticky)[^}]*\}/g, '/* stripped */')
+      .replace(/@media[^{]*\{[^}]*\}/g, '/* stripped */');
   }).join('\n');
 
   if (isFullDoc) {

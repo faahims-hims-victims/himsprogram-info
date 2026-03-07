@@ -295,20 +295,29 @@ shellBefore = shellBefore.replace(/<meta\s+name="robots"\s+content="[^"]*"\s*\/?
 shellBefore = shellBefore.replace(/<script type="application\/ld\+json">\s*\{[^}]*"@type"\s*:\s*"Organization"[\s\S]*?<\/script>/g, '');
 shellBefore = shellBefore.replace(/<script type="application\/ld\+json">\s*\{[^}]*"@type"\s*:\s*"WebSite"[\s\S]*?<\/script>/g, '');
 shellBefore = shellBefore.replace(/\n{3,}/g, '\n\n');
-// Strip shell layout rules that conflict with mirror enhancements
-shellBefore = shellBefore.replace(/#hamburger-toggle\s*\{[^}]*\}/g, '/* mirror-stripped */');
-shellBefore = shellBefore.replace(/#close-menu-toggle\s*\{[^}]*\}/g, '/* mirror-stripped */');
-shellBefore = shellBefore.replace(/@media[^{]*\{[^}]*#hamburger-toggle[^}]*\}[^}]*\}/g, '/* mirror-stripped */');
-shellBefore = shellBefore.replace(/@media[^{]*\{[^}]*#close-menu-toggle[^}]*\}[^}]*\}/g, '/* mirror-stripped */');
 
 // ─── Inject CSS for fixed resource network panel (CSS-only, no DOM changes) ─
 const mirrorCSS = `
 <style id="mirror-enhancements">
-  /* FIX 1: Hamburger + close buttons above the mirror banner */
+  /* FIX 1: Hamburger + close buttons — hidden on desktop, positioned on mobile */
   #hamburger-toggle,
   #close-menu-toggle {
-    z-index: 10001 !important;
-    top: 52px !important;
+    display: none !important;
+  }
+  @media (max-width: 768px) {
+    #hamburger-toggle {
+      display: flex !important;
+      z-index: 10001 !important;
+      top: 52px !important;
+      position: fixed !important;
+      right: 15px !important;
+    }
+    #close-menu-toggle {
+      z-index: 10001 !important;
+      top: 52px !important;
+      position: fixed !important;
+      right: 15px !important;
+    }
   }
   /* Fixed resource network panel — right side, doesn't scroll with content */
   #mirror-resource-network {

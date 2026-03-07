@@ -541,6 +541,21 @@ if (hb) hb.style.top = '52px';
 var cb = document.getElementById('close-menu-toggle');
 if (cb) cb.style.top = '52px';
 
+// Fix TOC button and sidebar position below banner
+var tocBtn = document.getElementById('toc-toggle');
+if (tocBtn) tocBtn.style.top = '52px';
+var tocSidebar = document.getElementById('toc-sidebar');
+if (tocSidebar) { tocSidebar.style.top = '90px'; tocSidebar.style.right = '340px'; }
+
+// Close TOC when clicking a link inside it
+if (tocSidebar) {
+  tocSidebar.addEventListener('click', function(e) {
+    if (e.target.tagName === 'A') {
+      tocSidebar.style.display = 'none';
+    }
+  });
+}
+
 // FIX 2: Close mobile nav sidebar after selecting a link
 document.addEventListener('click', function(e) {
   var link = e.target.closest('aside a');

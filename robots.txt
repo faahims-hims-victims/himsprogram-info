@@ -7,6 +7,7 @@ Disallow: /.github/
 Disallow: /scripts/
 Disallow: /node_modules/
 
+Sitemap: https://himsprogram.info/sitemap-index.xml
 Sitemap: https://himsprogram.info/sitemap.xml
 
 User-agent: Googlebot

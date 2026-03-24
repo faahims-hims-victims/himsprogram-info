@@ -304,7 +304,7 @@ shellBefore = shellBefore.replace(/<meta\s+content="[^"]*"\s+property="og:locale
 shellBefore = shellBefore.replace(/<meta\s+name="robots"\s+content="[^"]*"\s*\/?>/g, '');
 shellBefore = shellBefore.replace(/<script type="application\/ld\+json">\s*\{[^}]*"@type"\s*:\s*"Organization"[\s\S]*?<\/script>/g, '');
 shellBefore = shellBefore.replace(/<script type="application\/ld\+json">\s*\{[^}]*"@type"\s*:\s*"WebSite"[\s\S]*?<\/script>/g, '');
-shellBefore = shellBefore.replace(/\n{3,}/g, '\n\n');
+shellBefore = shellBefore.replace(/<meta\s+property="og:site_name"\s+content="[^"]*"\s*\/?>/g, '');
 
 // ─── Inject CSS for fixed resource network panel (CSS-only, no DOM changes) ─
 const mirrorCSS = `

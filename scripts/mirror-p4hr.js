@@ -669,16 +669,16 @@ function buildPage(pageName, content, meta) {
     <meta property="og:description" content="${esc(desc)}"/>
     <meta property="og:type" content="website"/>
     <meta property="og:url" content="${canonical}"/>
-    <meta property="og:site_name" content="FAA HIMS Program Info — ${MIRROR_DOMAIN}"/>
+    <meta property="og:site_name" content="FAA HIMS Program"/>
     <meta property="og:updated_time" content="${BUILD_TIME}"/>
     <meta name="twitter:card" content="summary"/>
     <meta name="twitter:title" content="${esc(title)}"/>
     <meta name="twitter:description" content="${esc(desc)}"/>
     <script type="application/ld+json">
-    {"@context":"https://schema.org","@type":"WebPage","name":${JSON.stringify(title)},"description":${JSON.stringify(desc)},"url":"${canonical}","dateModified":"${BUILD_TIME}","isPartOf":{"@type":"WebSite","name":"HIMS Program Info","url":"${MIRROR_URL}","alternateName":"FAA HIMS Program Information"}}
+    {"@context":"https://schema.org","@type":"WebPage","name":${JSON.stringify(title)},"description":${JSON.stringify(desc)},"url":"${canonical}","dateModified":"${BUILD_TIME}","isPartOf":{"@type":"WebSite","name":"FAA HIMS Program","url":"${MIRROR_URL}","alternateName":"FAA HIMS Program Information"}}
     </script>
     <script type="application/ld+json">
-    {"@context":"https://schema.org","@type":"WebSite","name":"HIMS Program Info","alternateName":"FAA HIMS Program Information","url":"${MIRROR_URL}"}
+    {"@context":"https://schema.org","@type":"WebSite","name":"FAA HIMS Program","alternateName":"FAA HIMS Program Information","url":"${MIRROR_URL}"}
     </script>`;
 
   // Mirror identification banner

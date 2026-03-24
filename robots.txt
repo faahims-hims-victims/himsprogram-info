@@ -1,5 +1,5 @@
 # himsprogram.info — Pilots for HIMS Reform network
-# Generated: 2026-03-24T07:34:43.427Z
+# Generated: 2026-03-24T07:54:40.799Z
 
 User-agent: *
 Allow: /
@@ -7,7 +7,6 @@ Disallow: /.github/
 Disallow: /scripts/
 Disallow: /node_modules/
 
-Sitemap: https://himsprogram.info/sitemap-index.xml
 Sitemap: https://himsprogram.info/sitemap.xml
 
 User-agent: Googlebot

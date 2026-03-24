@@ -839,7 +839,18 @@ ${generated.filter(p => p !== '404.html').map(p => {
   }).join('\n')}
 </urlset>`;
 fs.writeFileSync('sitemap.xml', sitemapXml);
-console.log(`   ✓ sitemap.xml (${generated.length - 1} URLs)\n`);
+console.log(`   ✓ sitemap.xml (${generated.length - 1} URLs)`);
+
+// Generate sitemap-index.xml
+const sitemapIndex = `<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <sitemap>
+    <loc>${MIRROR_URL}/sitemap.xml</loc>
+    <lastmod>${today}</lastmod>
+  </sitemap>
+</sitemapindex>`;
+fs.writeFileSync('sitemap-index.xml', sitemapIndex);
+console.log(`   ✓ sitemap-index.xml\n`);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // STEP 10: Generate robots.txt

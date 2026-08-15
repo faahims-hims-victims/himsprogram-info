@@ -248,8 +248,8 @@ console.log('5. Preparing template...');
 function rewriteLinks(html) {
   let r = html;
 
-  // Nav links: ?page=X.html → /X.html
-  r = r.replace(/href="\?page=([^"]+)"/g, 'href="/$1"');
+  // Nav links: ?page=X.html and /?page=X.html → /X.html
+  r = r.replace(/href="\/?\?page=([^"]+)"/g, 'href="/$1"');
 
   // Remove SPA onclick handlers (href already works for navigation)
   r = r.replace(/ onclick="loadPage\('[^']+'\);\s*window\.history\.pushState\(\{\},\s*'',\s*'\?page=[^']+'\);\s*return false;"/g, '');
@@ -272,8 +272,8 @@ function rewriteLinks(html) {
   // onclick ?page= → direct
   r = r.replace(/window\.location\.href='\?page=([^']*)'/g, "window.location.href='/$1'");
 
-  // Any remaining href="?page=X" in content
-  r = r.replace(/href="\?page=([^"]+)"/g, 'href="/$1"');
+  // Any remaining href="?page=X" or "/?page=X" in content
+  r = r.replace(/href="\/?\?page=([^"]+)"/g, 'href="/$1"');
 
   return r;
 }
@@ -574,6 +574,8 @@ document.addEventListener('click', function(e) {
   }
 });
 
+// Neutralize SPA loadPage — this is a static mirror, direct navigation only
+if (typeof loadPage === 'function') { loadPage = function(p) { window.location.href = '/' + p; }; }
 // Also close on sub-nav link clicks (handles onclick handlers)
 document.addEventListener('DOMContentLoaded', function() {
   var subLinks = document.querySelectorAll('aside nav ul li ul li a');

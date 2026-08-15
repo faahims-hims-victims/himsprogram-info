@@ -667,6 +667,9 @@ function buildPage(pageName, content, meta) {
     <meta name="description" content="${esc(desc)}"/>
     <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large"/>
     <link rel="canonical" href="${canonical}"/>
+    <link rel="alternate" hreflang="en" href="${canonical}"/>
+    <link rel="alternate" hreflang="x-default" href="${canonical}"/>
+    <link rel="preload" as="image" href="/images/P4HR-Newest-Logo-Medium.png" fetchpriority="high"/>
     <meta property="og:title" content="${esc(title)}"/>
     <meta property="og:description" content="${esc(desc)}"/>
     <meta property="og:type" content="website"/>
@@ -680,10 +683,33 @@ function buildPage(pageName, content, meta) {
     {"@context":"https://schema.org","@type":"WebPage","name":${JSON.stringify(title)},"description":${JSON.stringify(desc)},"url":"${canonical}","dateModified":"${BUILD_TIME}","isPartOf":{"@type":"WebSite","name":"FAA HIMS Program","url":"${MIRROR_URL}","alternateName":"FAA HIMS Program Information"}}
     </script>
     <script type="application/ld+json">
-    {"@context":"https://schema.org","@type":"WebSite","name":"FAA HIMS Program","alternateName":"FAA HIMS Program Information","url":"${MIRROR_URL}"}
-    </script>`;
+    {"@context":"https://schema.org","@type":"WebSite","name":"HIMS Program Info","alternateName":"FAA HIMS Program Information","url":"${MIRROR_URL}"}
+    </script>
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"${MIRROR_URL}/"}${pageName === 'index.html' ? '' : `,{"@type":"ListItem","position":2,"name":${JSON.stringify(title.split('|')[0].trim())},"item":"${canonical}"}`}]}
+    </script>
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"Organization","name":"HIMS Program Info","url":"${MIRROR_URL}","logo":"${MIRROR_URL}/images/P4HR-Newest-Logo-Medium.png","parentOrganization":{"@type":"Organization","name":"Pilots for HIMS Reform","url":"${SOURCE_URL}"}}
+    </script>${faqSchema}`;
 
   // Mirror identification banner
+  // FAQPage schema for FAQ page — rich results eligibility
+  let faqSchema = '';
+  if (pageName === 'faq.html') {
+    const faqPairs = [];
+    const qRe = /<div class="faq-question"[^>]*>\s*([^<]+?)\s*<span/g;
+    const aRe = /<div class="faq-answer"[^>]*>\s*<p>([\s\S]*?)<\/p>/g;
+    const questions = []; const answers = [];
+    let qm, am;
+    while ((qm = qRe.exec(content)) !== null) questions.push(qm[1].trim());
+    while ((am = aRe.exec(content)) !== null) answers.push(am[1].replace(/<[^>]*>/g, '').trim().substring(0, 300));
+    for (let fi = 0; fi < Math.min(questions.length, answers.length); fi++) {
+      faqPairs.push({"@type":"Question","name":questions[fi],"acceptedAnswer":{"@type":"Answer","text":answers[fi]}});
+    }
+    if (faqPairs.length > 2) {
+      faqSchema = `\n    <script type="application/ld+json">\n    ${JSON.stringify({"@context":"https://schema.org","@type":"FAQPage","mainEntity":faqPairs})}\n    </script>`;
+    }
+  }
   const banner = `<div id="mirror-banner" style="background:linear-gradient(135deg,#1a3a5c,#2563eb);color:#fff;text-align:center;padding:8px 16px;font-size:0.82rem;font-family:'Arimo',sans-serif;position:sticky;top:0;z-index:10000;box-shadow:0 2px 4px rgba(0,0,0,0.2);">
     <strong>FAA HIMS Program Information</strong> — A
     <a href="${SOURCE_URL}" style="color:#a5d8ff;text-decoration:underline;">Pilots for HIMS Reform</a> network site

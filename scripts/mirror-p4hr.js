@@ -661,6 +661,23 @@ function buildPage(pageName, content, meta) {
   const p4hrLink = `${SOURCE_URL}/?page=${pageName}`;
 
   // SEO meta block
+  // FAQPage schema for FAQ page — rich results eligibility
+  let faqSchema = '';
+  if (pageName === 'faq.html') {
+    const faqPairs = [];
+    const qRe = /<div class="faq-question"[^>]*>\s*([^<]+?)\s*<span/g;
+    const aRe = /<div class="faq-answer"[^>]*>\s*<p>([\s\S]*?)<\/p>/g;
+    const questions = []; const answers = [];
+    let qm, am;
+    while ((qm = qRe.exec(content)) !== null) questions.push(qm[1].trim());
+    while ((am = aRe.exec(content)) !== null) answers.push(am[1].replace(/<[^>]*>/g, '').trim().substring(0, 300));
+    for (let fi = 0; fi < Math.min(questions.length, answers.length); fi++) {
+      faqPairs.push({"@type":"Question","name":questions[fi],"acceptedAnswer":{"@type":"Answer","text":answers[fi]}});
+    }
+    if (faqPairs.length > 2) {
+      faqSchema = `\n    <script type="application/ld+json">\n    ${JSON.stringify({"@context":"https://schema.org","@type":"FAQPage","mainEntity":faqPairs})}\n    </script>`;
+    }
+  }
   const seo = `
     <!-- Mirror SEO: ${MIRROR_DOMAIN} -->
     <title>${esc(title)}</title>

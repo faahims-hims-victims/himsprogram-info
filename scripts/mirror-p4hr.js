@@ -68,6 +68,36 @@ function fetchBinary(url, dest) {
 
 function sleep(ms) { execSync(`sleep ${ms / 1000}`); }
 function esc(s) { return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+// Fetch related-links.json once at build time for static Related Articles
+let RELATED_DATA = null;
+function loadRelatedLinks() {
+  if (RELATED_DATA !== null) return RELATED_DATA;
+  try {
+    const raw = fetchText(`${SOURCE_URL}/related-links.json`);
+    RELATED_DATA = raw ? JSON.parse(raw) : {};
+    console.log(`   Related-links loaded: ${Object.keys(RELATED_DATA.related || {}).length} pages`);
+  } catch (e) {
+    console.log(`   Related-links FAILED: ${e.message}`);
+    RELATED_DATA = {};
+  }
+  return RELATED_DATA;
+}
+
+// Build static Related Articles HTML for a page
+function buildRelatedArticles(pageName) {
+  const data = loadRelatedLinks();
+  const rel = (data.related || {})[pageName];
+  if (!rel || !rel.length) return '';
+  const stand = data.standalone_titles || {};
+  const items = rel.filter(rp => rp !== pageName).map(function(rp) {
+    let label = stand[rp] || (pageMeta[rp] && pageMeta[rp].title) || rp;
+    label = label.replace(/\s*\|\s*Pilots for HIMS Reform\s*$/, '');
+    return `    <li><a href="/${rp}">${esc(label)}</a></li>`;
+  });
+  if (!items.length) return '';
+  return `\n<nav class="related-articles" aria-label="Related articles">\n  <h2>Related Articles</h2>\n  <ul>\n${items.join('\n')}\n  </ul>\n</nav>\n`;
+}
 /**
  * FIX 3 — Strip embedded <head> blocks from page content.
  * Preserves page-specific <style> rules (FAQ accordion, etc.) while

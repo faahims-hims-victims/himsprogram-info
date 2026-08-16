@@ -105,6 +105,9 @@ function buildRelatedArticles(pageName) {
  */
 function cleanPageContent(raw, pageName) {
   let content = raw;
+
+  // Strip sticky-subscribe button — renders unstyled after CSS stripping
+  content = content.replace(/<a class="sticky-subscribe"[\s\S]*?<\/a>/gi, '');
   const trimmed = content.trimStart();
   const isFullDoc = trimmed.startsWith('<!DOCTYPE') || trimmed.startsWith('<!doctype') ||
       trimmed.startsWith('<html') || trimmed.startsWith('<head');
@@ -448,6 +451,17 @@ const mirrorCSS = `
     }
   }
 
+  /* Related Articles styling (page CSS is stripped, so style here) */
+  nav.related-articles {
+    margin: 2.5rem auto 1rem;
+    padding: 1.25rem 20px 0;
+    border-top: 1px solid rgba(128,128,128,.35);
+    max-width: 900px;
+  }
+  nav.related-articles h2 { font-size: 1.15rem; margin: 0 0 .6rem; }
+  nav.related-articles ul { margin: 0; padding-left: 1.2rem; }
+  nav.related-articles li { margin: .35rem 0; }
+
   /* Push page TOC sidebars left of the resource network panel */
   #toc-sidebar {
     right: 340px !important;
@@ -780,8 +794,8 @@ function buildPage(pageName, content, meta) {
     head = head.substring(0, bodyEnd) + '\n' + banner + '\n' + head.substring(bodyEnd);
   }
 
-  // Rewrite the content links
-  const rewrittenContent = rewriteLinks(content);
+  // Rewrite the content links + append static Related Articles
+  const rewrittenContent = rewriteLinks(content) + buildRelatedArticles(pageName);
 
   return `${head}\n${rewrittenContent}\n${shellAfter}\n<!-- Build #${BUILD_NUMBER} | ${MIRROR_DOMAIN} | ${BUILD_TIME} -->`;
 }

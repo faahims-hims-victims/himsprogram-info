@@ -695,8 +695,8 @@ function buildPage(pageName, content, meta) {
   let faqSchema = '';
   if (pageName === 'faq.html') {
     const faqPairs = [];
-    const qRe = /<div class="faq-question"[^>]*>\s*([^<]+?)\s*<span/g;
-    const aRe = /<div class="faq-answer"[^>]*>\s*<p>([\s\S]*?)<\/p>/g;
+    const qRe = /<div class="faq-question"[^>]*>\s*<span>([\s\S]*?)<\/span>/g;
+    const aRe = /<div class="faq-answer"[^>]*>([\s\S]*?)<\/div>/g;
     const questions = []; const answers = [];
     let qm, am;
     while ((qm = qRe.exec(content)) !== null) questions.push(qm[1].trim());
@@ -722,6 +722,8 @@ function buildPage(pageName, content, meta) {
     <meta property="og:type" content="website"/>
     <meta property="og:url" content="${canonical}"/>
     <meta property="og:site_name" content="FAA HIMS Program"/>
+    <meta property="og:image" content="${MIRROR_URL}/images/P4HR-Newest-Logo-Medium.png"/>
+    <meta name="twitter:image" content="${MIRROR_URL}/images/P4HR-Newest-Logo-Medium.png"/>
     <meta property="og:updated_time" content="${BUILD_TIME}"/>
     <meta name="twitter:card" content="summary"/>
     <meta name="twitter:title" content="${esc(title)}"/>

@@ -227,19 +227,29 @@ if (!shell) {
 // ═══════════════════════════════════════════════════════════════════════════
 
 console.log('3. Extracting PAGE_META...');
-const pageMeta = {};
-const metaBlock = shell.match(/const PAGE_META\s*=\s*\{([\s\S]*?)\n\s*\};/);
-if (metaBlock) {
-  const re = /'([^']+)':\s*\{\s*title:\s*'((?:[^'\\]|\\.)*)'\s*,\s*description:\s*'((?:[^'\\]|\\.)*)'\s*\}/g;
-  let m;
-  while ((m = re.exec(metaBlock[1])) !== null) {
-    pageMeta[m[1]] = {
-      title: m[2].replace(/\\'/g, "'"),
-      description: m[3].replace(/\\'/g, "'")
-    };
+let pageMeta = {};
+// P4HR moved PAGE_META to external page-meta.json — fetch it directly
+try {
+  const metaRaw = fetchText(`${SOURCE_URL}/page-meta.json`);
+  if (metaRaw) pageMeta = JSON.parse(metaRaw) || {};
+} catch (e) {
+  console.log(`   page-meta.json fetch failed: ${e.message}`);
+}
+// Fallback: legacy inline PAGE_META block
+if (Object.keys(pageMeta).length === 0) {
+  const metaBlock = shell.match(/const PAGE_META\s*=\s*\{([\s\S]*?)\n\s*\};/);
+  if (metaBlock) {
+    const re = /'([^']+)':\s*\{\s*title:\s*'((?:[^'\\]|\\.)*)'\s*,\s*description:\s*'((?:[^'\\]|\\.)*)'\s*\}/g;
+    let m;
+    while ((m = re.exec(metaBlock[1])) !== null) {
+      pageMeta[m[1]] = {
+        title: m[2].replace(/\\'/g, "'"),
+        description: m[3].replace(/\\'/g, "'")
+      };
+    }
   }
 }
-console.log(`   ✓ ${Object.keys(pageMeta).length} page meta entries\n`);
+console.log(`   OK ${Object.keys(pageMeta).length} page meta entries\n`);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // STEP 4: Build the complete page list

@@ -92,7 +92,7 @@ function buildRelatedArticles(pageName) {
   const stand = data.standalone_titles || {};
   const items = rel.filter(rp => rp !== pageName).map(function(rp) {
     let label = stand[rp] || (pageMeta[rp] && pageMeta[rp].title) || rp;
-    label = label.replace(/\s*\|\s*Pilots for HIMS Reform\s*$/, '');
+    label = label.replace(/\s*\|\s*(Pilots for HIMS Reform|P4HR)\s*$/, '');
     return `    <li><a href="/${rp}">${esc(label)}</a></li>`;
   });
   if (!items.length) return '';

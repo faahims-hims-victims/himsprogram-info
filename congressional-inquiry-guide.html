@@ -18,12 +18,12 @@
     <meta property="og:site_name" content="FAA HIMS Program"/>
     <meta property="og:image" content="https://himsprogram.info/images/P4HR-Newest-Logo-Medium.png"/>
     <meta name="twitter:image" content="https://himsprogram.info/images/P4HR-Newest-Logo-Medium.png"/>
-    <meta property="og:updated_time" content="2026-08-19T05:53:02.182Z"/>
+    <meta property="og:updated_time" content="2026-08-19T06:39:52.502Z"/>
     <meta name="twitter:card" content="summary"/>
     <meta name="twitter:title" content="How to Initiate a Congressional Inquiry | P4HR"/>
     <meta name="twitter:description" content="When the FAA won’t respond, your AME is powerless, and your certification is stuck in limbo, it’s time to bring in your elected officials. A congressional."/>
     <script type="application/ld+json">
-    {"@context":"https://schema.org","@type":"WebPage","name":"How to Initiate a Congressional Inquiry | P4HR","description":"When the FAA won’t respond, your AME is powerless, and your certification is stuck in limbo, it’s time to bring in your elected officials. A congressional.","url":"https://himsprogram.info/congressional-inquiry-guide.html","dateModified":"2026-08-19T05:53:02.182Z","isPartOf":{"@type":"WebSite","name":"FAA HIMS Program","url":"https://himsprogram.info","alternateName":"FAA HIMS Program Information"}}
+    {"@context":"https://schema.org","@type":"WebPage","name":"How to Initiate a Congressional Inquiry | P4HR","description":"When the FAA won’t respond, your AME is powerless, and your certification is stuck in limbo, it’s time to bring in your elected officials. A congressional.","url":"https://himsprogram.info/congressional-inquiry-guide.html","dateModified":"2026-08-19T06:39:52.502Z","isPartOf":{"@type":"WebSite","name":"FAA HIMS Program","url":"https://himsprogram.info","alternateName":"FAA HIMS Program Information"}}
     </script>
     <script type="application/ld+json">
     {"@context":"https://schema.org","@type":"WebSite","name":"HIMS Program Info","alternateName":"FAA HIMS Program Information","url":"https://himsprogram.info"}
@@ -616,8 +616,14 @@ nav.related-articles li{margin:.35rem 0}
     max-width: 100% !important;
     overflow-x: hidden !important;
   }
-  /* FIX 4: Prevent content from running under resource panel */
+  /* FIX 4: Prevent content from running under resource panel.
+     .container is display:flex in the P4HR shell, so #main-content is a
+     flex item. Without flex-grow it shrink-to-fits its content and the
+     column collapses. min-width:0 lets it shrink below intrinsic width
+     instead of overflowing on long URLs and wide tables. */
   #main-content {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
     max-width: 100% !important;
     overflow: hidden !important;
     box-sizing: border-box !important;
@@ -925,14 +931,8 @@ nav.related-articles li{margin:.35rem 0}
 <!-- Main Content -->
 <div id="main-content">
 <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-WYLY7LQ0PE"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
 
-  gtag('config', 'G-WYLY7LQ0PE');
-</script>
+
 
 <div class="article-container">
     <h1>How to Initiate a Congressional Inquiry: A Pilot’s Guide to Getting Your Voice Heard</h1>
@@ -972,16 +972,7 @@ nav.related-articles li{margin:.35rem 0}
 
     <p>Need help drafting your inquiry? Contact us at <a href="mailto:P4HR@pilotsforhimsreform.org">P4HR@pilotsforhimsreform.org</a>.</p>
   </div>
-  <footer class="fade-in">
-<p style="font-size: 0.85em; text-align: center; padding: 20px 10px;">
-      © 2026 Pilots for HIMS Reform. All rights reserved. |
-      <a href="#" onclick="window.location.href='/terms.html'; return false;">Terms of Use</a> |
-      <a href="#" onclick="window.location.href='/privacy.html'; return false;">Privacy Policy</a>
-</p>
-<p style="font-size: 0.8em; text-align: center; color: #777; max-width: 800px; margin: 0 auto 20px;">
-      Disclaimer: Pilots for HIMS Reform is an independent advocacy group not affiliated with the Federal Aviation Administration (FAA) or the official HIMS Program. Information provided is for general educational purposes only and does not constitute legal, medical, or professional advice.
-</p>
-</footer>
+  
 
 <nav class="related-articles" aria-label="Related articles">
   <h2>Related Articles</h2>
@@ -1049,7 +1040,7 @@ nav.related-articles li{margin:.35rem 0}
         Not affiliated with the FAA or official HIMS Program.
       </p>
       <p style="font-size:0.64rem;color:#445;margin:0;font-family:monospace;">
-        Build #743 | 8/19/2026, 05:53:02 UTC
+        Build #745 | 8/19/2026, 06:39:52 UTC
       </p>
     </div>
   </div>
@@ -1231,4 +1222,4 @@ document.addEventListener('DOMContentLoaded', function() {
 
 </body>
 </html>
-<!-- Build #743 | himsprogram.info | 2026-08-19T05:53:02.182Z -->
+<!-- Build #745 | himsprogram.info | 2026-08-19T06:39:52.502Z -->

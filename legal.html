@@ -18,12 +18,12 @@
     <meta property="og:site_name" content="FAA HIMS Program"/>
     <meta property="og:image" content="https://himsprogram.info/images/P4HR-Newest-Logo-Medium.png"/>
     <meta name="twitter:image" content="https://himsprogram.info/images/P4HR-Newest-Logo-Medium.png"/>
-    <meta property="og:updated_time" content="2026-08-19T05:53:02.182Z"/>
+    <meta property="og:updated_time" content="2026-08-19T06:39:52.502Z"/>
     <meta name="twitter:card" content="summary"/>
     <meta name="twitter:title" content="HIMS Legal Advocacy for Pilots | Pilots for HIMS Reform"/>
     <meta name="twitter:description" content="FAA policies must comply with federal law. Legal insights for pilots navigating the HIMS program, medical certification denials, and psychiatric oversight"/>
     <script type="application/ld+json">
-    {"@context":"https://schema.org","@type":"WebPage","name":"HIMS Legal Advocacy for Pilots | Pilots for HIMS Reform","description":"FAA policies must comply with federal law. Legal insights for pilots navigating the HIMS program, medical certification denials, and psychiatric oversight","url":"https://himsprogram.info/legal.html","dateModified":"2026-08-19T05:53:02.182Z","isPartOf":{"@type":"WebSite","name":"FAA HIMS Program","url":"https://himsprogram.info","alternateName":"FAA HIMS Program Information"}}
+    {"@context":"https://schema.org","@type":"WebPage","name":"HIMS Legal Advocacy for Pilots | Pilots for HIMS Reform","description":"FAA policies must comply with federal law. Legal insights for pilots navigating the HIMS program, medical certification denials, and psychiatric oversight","url":"https://himsprogram.info/legal.html","dateModified":"2026-08-19T06:39:52.502Z","isPartOf":{"@type":"WebSite","name":"FAA HIMS Program","url":"https://himsprogram.info","alternateName":"FAA HIMS Program Information"}}
     </script>
     <script type="application/ld+json">
     {"@context":"https://schema.org","@type":"WebSite","name":"HIMS Program Info","alternateName":"FAA HIMS Program Information","url":"https://himsprogram.info"}
@@ -616,8 +616,14 @@ nav.related-articles li{margin:.35rem 0}
     max-width: 100% !important;
     overflow-x: hidden !important;
   }
-  /* FIX 4: Prevent content from running under resource panel */
+  /* FIX 4: Prevent content from running under resource panel.
+     .container is display:flex in the P4HR shell, so #main-content is a
+     flex item. Without flex-grow it shrink-to-fits its content and the
+     column collapses. min-width:0 lets it shrink below intrinsic width
+     instead of overflowing on long URLs and wide tables. */
   #main-content {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
     max-width: 100% !important;
     overflow: hidden !important;
     box-sizing: border-box !important;
@@ -930,14 +936,8 @@ nav.related-articles li{margin:.35rem 0}
   <p>The cases collected here were verified against primary records — dockets, opinions, and arbitration awards — rather than press summaries. Several are still moving: statuses that were accurate when first written have changed as motions were decided.</p>
 </aside>
 <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-WYLY7LQ0PE"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
 
-  gtag('config', 'G-WYLY7LQ0PE');
-</script>
+
 <section class="content fade-in" style="background-color: var(--bg-color); color: var(--text-color); padding: 40px 20px;">
 <div style="max-width: 1000px; margin: 0 auto;">
 <h1 style="font-size: 2.5rem; text-align: center;">⚖️ Legal Advocacy for FAA Oversight Reform</h1>
@@ -975,16 +975,7 @@ In April 2024, a Petition for Writ of Mandamus was filed against the FAA and sen
 </div>
 </section>
 
-<footer class="fade-in">
-<p style="font-size: 0.85em; text-align: center; padding: 20px 10px;">
-      © 2026 Pilots for HIMS Reform. All rights reserved. |
-      <a href="#" onclick="window.location.href='/terms.html'; return false;">Terms of Use</a> |
-      <a href="#" onclick="window.location.href='/privacy.html'; return false;">Privacy Policy</a>
-</p>
-<p style="font-size: 0.8em; text-align: center; color: #777; max-width: 800px; margin: 0 auto 20px;">
-      Disclaimer: Pilots for HIMS Reform is an independent advocacy group not affiliated with the Federal Aviation Administration (FAA) or the official HIMS Program. Information provided is for general educational purposes only and does not constitute legal, medical, or professional advice.
-</p>
-</footer>
+
 
 
 <nav class="related-articles" aria-label="Related articles">
@@ -1053,7 +1044,7 @@ In April 2024, a Petition for Writ of Mandamus was filed against the FAA and sen
         Not affiliated with the FAA or official HIMS Program.
       </p>
       <p style="font-size:0.64rem;color:#445;margin:0;font-family:monospace;">
-        Build #743 | 8/19/2026, 05:53:02 UTC
+        Build #745 | 8/19/2026, 06:39:52 UTC
       </p>
     </div>
   </div>
@@ -1235,4 +1226,4 @@ document.addEventListener('DOMContentLoaded', function() {
 
 </body>
 </html>
-<!-- Build #743 | himsprogram.info | 2026-08-19T05:53:02.182Z -->
+<!-- Build #745 | himsprogram.info | 2026-08-19T06:39:52.502Z -->

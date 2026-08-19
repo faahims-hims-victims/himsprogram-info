@@ -100,7 +100,11 @@ try {
 function buildEditorialNote(pageName) {
   const note = PAGE_NOTES[pageName];
   if (!note || note.trim().length < 40) return '';
-  return `\n<aside class="mirror-note" aria-label="Editorial context">\n  <h2>Context</h2>\n  <p>${note}</p>\n</aside>\n`;
+  // Emitted as <section>, NOT <aside>: P4HR styles its nav sidebar with a bare
+  // `aside` selector (width:250px; height:100vh; position:sticky), which any
+  // <aside> we emit inherits wholesale. Using <aside> also made the note's
+  // links match the mobile nav handler's closest('aside a') selector.
+  return `\n<section class="mirror-note" role="note" aria-label="Editorial context">\n  <h2>Context</h2>\n  <p>${note}</p>\n</section>\n`;
 }
 
 // Build static Related Articles HTML for a page
@@ -498,14 +502,25 @@ const mirrorCSS = `
     }
   }
 
-  /* Editorial context block — mirror-only original content */
-  aside.mirror-note {
+  /* Editorial context block — mirror-only original content.
+     Class-only selector, with explicit resets. P4HR styles its nav sidebar
+     with a bare 'aside' selector: width:250px; height:100vh; position:sticky.
+     max-width cannot override an explicit width, so an <aside> note rendered
+     as a 250px x 100vh column and pushed page content to y=1187 — below the
+     fold on a 1100px viewport. The resets stay as belt-and-braces even though
+     the note is now emitted as <section>. */
+  .mirror-note {
+    width: auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+    position: static !important;
+    overflow: visible !important;
     max-width: 900px; margin: 1.5rem auto 2rem; padding: 1rem 1.25rem;
     border-left: 4px solid #4a90d9; background: rgba(74,144,217,.07);
-    border-radius: 6px;
+    border-radius: 6px; box-sizing: border-box;
   }
-  aside.mirror-note h2 { font-size: 1rem; margin: 0 0 .5rem; letter-spacing: .02em; }
-  aside.mirror-note p { margin: 0; line-height: 1.6; }
+  .mirror-note h2 { font-size: 1rem; margin: 0 0 .5rem; letter-spacing: .02em; }
+  .mirror-note p { margin: 0; line-height: 1.6; }
 
   /* Related Articles styling (page CSS is stripped, so style here) */
   nav.related-articles {

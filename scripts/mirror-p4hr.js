@@ -117,6 +117,15 @@ function buildRelatedArticles(pageName) {
   if (!items.length) return '';
   return `\n<nav class="related-articles" aria-label="Related articles">\n  <h2>Related Articles</h2>\n  <ul>\n${items.join('\n')}\n  </ul>\n</nav>\n`;
 }
+
+// ─── Source footer boilerplate removal ──────────────────────────────────────
+// Both patterns are constrained to a SINGLE <p> element via (?:(?!<\/p>)[\s\S])*?.
+// The earlier lazy [\s\S]*? form began matching at the FIRST <p> in the
+// document, so whenever the <footer> strip below failed to fire (disclaimer not
+// wrapped in <footer>), it deleted the entire article body along with it.
+const P_COPYRIGHT  = /<p[^>]*>(?:(?!<\/p>)[\s\S])*?©\s*20\d{2} Pilots for HIMS Reform(?:(?!<\/p>)[\s\S])*?<\/p>/gi;
+const P_DISCLAIMER = /<p[^>]*>(?:(?!<\/p>)[\s\S])*?Disclaimer:(?:(?!<\/p>)[\s\S])*?not constitute legal(?:(?!<\/p>)[\s\S])*?<\/p>/gi;
+
 /**
  * FIX 3 — Strip embedded <head> blocks from page content.
  * Preserves page-specific <style> rules (FAQ accordion, etc.) while
@@ -127,6 +136,17 @@ function cleanPageContent(raw, pageName) {
 
   // Strip sticky-subscribe button — renders unstyled after CSS stripping
   content = content.replace(/<a class="sticky-subscribe"[\s\S]*?<\/a>/gi, '');
+
+  // ─── Runs on ALL content, fragment or full document ───
+  // P4HR serves most pages as bare fragments with no <head>, so these used to
+  // be skipped by the early return below — leaving GA reinjected and the
+  // source footer intact on every fragment page.
+  content = content.replace(/<script[^>]*src="[^"]*googletagmanager[^"]*"[^>]*><\/script>/gi, '');
+  content = content.replace(/<script>\s*window\.dataLayer[\s\S]*?<\/script>/gi, '');
+  content = content.replace(/<footer[\s\S]*?<\/footer>/gi, '');
+  content = content.replace(P_COPYRIGHT, '');
+  content = content.replace(P_DISCLAIMER, '');
+
   const trimmed = content.trimStart();
   const isFullDoc = trimmed.startsWith('<!DOCTYPE') || trimmed.startsWith('<!doctype') ||
       trimmed.startsWith('<html') || trimmed.startsWith('<head');
@@ -156,22 +176,14 @@ function cleanPageContent(raw, pageName) {
     console.log('(full-doc cleaned) ');
   }
 
-  // Strip remaining <head> sections, embedded styles, and GA tracking
+  // Strip remaining <head> sections and embedded styles
   content = content.replace(/<head[\s\S]*?<\/head>/gi, '');
   content = content.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
-  content = content.replace(/<script[^>]*src="[^"]*googletagmanager[^"]*"[^>]*><\/script>/gi, '');
-  content = content.replace(/<script>\s*window\.dataLayer[\s\S]*?<\/script>/gi, '');
 
   // Re-inject cleaned page styles
   if (cleanedStyles.trim().length > 50) {
     content = cleanedStyles + '\n' + content;
   }
-
-  // Remove duplicate copyright/disclaimer from page content
-  // (resource network panel already shows this)
-  content = content.replace(/<footer[\s\S]*?<\/footer>/gi, '');
-  content = content.replace(/<p[^>]*>[\s\S]*?© 20\d{2} Pilots for HIMS Reform[\s\S]*?<\/p>/gi, '');
-  content = content.replace(/<p[^>]*>[\s\S]*?Disclaimer:[\s\S]*?not constitute legal[\s\S]*?<\/p>/gi, '');
 
   return content;
 }
@@ -885,65 +897,8 @@ for (let i = 0; i < sortedPages.length; i++) {
   if (content.includes('404: Page not found') && content.length < 500) {
     console.log('✗ 404'); failCount++; sleep(FETCH_DELAY); continue;
   }
-/**
- * FIX 3 — Strip embedded <head> blocks from page content.
- * Preserves page-specific <style> rules (FAQ accordion, etc.) while
- * removing body/html/container-level CSS that conflicts with mirror shell.
- */
-function cleanPageContent(raw, pageName) {
-  let content = raw;
 
-  // Strip sticky-subscribe button — renders unstyled after CSS stripping
-  content = content.replace(/<a class="sticky-subscribe"[\s\S]*?<\/a>/gi, '');
-
-  // ─── Runs on ALL content, fragment or full document ───
-  // P4HR fragments carry no <head>, so these used to be skipped by the
-  // early return below — leaving GA reinjected and the source footer intact.
-  content = content.replace(/<script[^>]*src="[^"]*googletagmanager[^"]*"[^>]*><\/script>/gi, '');
-  content = content.replace(/<script>\s*window\.dataLayer[\s\S]*?<\/script>/gi, '');
-  content = content.replace(/<footer[\s\S]*?<\/footer>/gi, '');
-  content = content.replace(/<p[^>]*>[\s\S]*?© 20\d{2} Pilots for HIMS Reform[\s\S]*?<\/p>/gi, '');
-  content = content.replace(/<p[^>]*>[\s\S]*?Disclaimer:[\s\S]*?not constitute legal[\s\S]*?<\/p>/gi, '');
-
-  const trimmed = content.trimStart();
-  const isFullDoc = trimmed.startsWith('<!DOCTYPE') || trimmed.startsWith('<!doctype') ||
-      trimmed.startsWith('<html') || trimmed.startsWith('<head');
-  const hasEmbeddedHead = content.includes('<head>') || content.includes('<head ');
-
-  if (!isFullDoc && !hasEmbeddedHead) {
-    content = content.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
-    return content;
-  }
-
-  // Strip ALL embedded styles — shell already has layout CSS.
-  let cleanedStyles = '';
-
-  if (isFullDoc) {
-    var bodyStart = content.indexOf('<body');
-    var bodyTagEnd = bodyStart > -1 ? content.indexOf('>', bodyStart) + 1 : -1;
-    var bodyClose = content.lastIndexOf('</body>');
-    if (bodyTagEnd > 0 && bodyClose > bodyTagEnd) {
-      content = content.substring(bodyTagEnd, bodyClose);
-    } else {
-      content = content.replace(/<head[\s\S]*?<\/head>/gi, '');
-      content = content.replace(/<\/?html[^>]*>/gi, '');
-      content = content.replace(/<\/?body[^>]*>/gi, '');
-      content = content.replace(/^<!(DOCTYPE|doctype)[^>]*>/m, '');
-    }
-    console.log('(full-doc cleaned) ');
-  }
-
-  // Strip remaining <head> sections and embedded styles
-  content = content.replace(/<head[\s\S]*?<\/head>/gi, '');
-  content = content.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
-
-  // Re-inject cleaned page styles
-  if (cleanedStyles.trim().length > 50) {
-    content = cleanedStyles + '\n' + content;
-  }
-
-  return content;
-}
+  const pageContent = cleanPageContent(content, pageName);
 
   // Get SEO meta (from P4HR's PAGE_META or generate fallback)
   const meta = pageMeta[pageName] || {

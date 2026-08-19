@@ -902,15 +902,20 @@ console.log(`\n   Result: ${okCount} generated, ${failCount} failed\n`);
 // ═══════════════════════════════════════════════════════════════════════════
 console.log('7b. Sweeping orphaned pages...');
 {
-  const keep = new Set(generated.concat(['404.html', 'site-index.html']));
-  let removed = 0;
-  for (const f of fs.readdirSync(process.cwd())) {
-    if (!f.endsWith('.html')) continue;
-    if (keep.has(f)) continue;
-    try { fs.unlinkSync(f); removed++; console.log(`   - removed orphan: ${f}`); }
-    catch (e) { console.log(`   ! could not remove ${f}: ${e.message}`); }
+  if (failCount > 0) {
+    console.log(`   SKIPPED — ${failCount} page(s) failed to fetch this build;`);
+    console.log(`   sweeping now could delete valid pages.\n`);
+  } else {
+    const keep = new Set(generated.concat(['404.html', 'site-index.html']));
+    let removed = 0;
+    for (const f of fs.readdirSync(process.cwd())) {
+      if (!f.endsWith('.html')) continue;
+      if (keep.has(f)) continue;
+      try { fs.unlinkSync(f); removed++; console.log(`   - removed orphan: ${f}`); }
+      catch (e) { console.log(`   ! could not remove ${f}: ${e.message}`); }
+    }
+    console.log(`   ${removed} orphan page(s) removed\n`);
   }
-  console.log(`   ${removed} orphan page(s) removed\n`);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1022,8 +1027,32 @@ console.log(`   ✓ sitemap-index.xml\n`);
 
 console.log('10. Generating robots.txt...');
 fs.writeFileSync('robots.txt',
-`# ${MIRROR_DOMAIN} — Pilots for HIMS Reform network\n# Generated: ${BUILD_TIME}\n\nUser-agent: *\nAllow: /\nDisallow: /.github/\nDisallow: /scripts/\nDisallow: /node_modules/\nDisallow: /page-notes.json\n\nSitemap: ${MIRROR_URL}/sitemap-index.xml\nSitemap: ${MIRROR_URL}/sitemap.xml\n\nUser-agent: Googlebot\nCrawl-delay: 1\n\nUser-agent: Bingbot\nCrawl-delay: 2\n`
-);
+`# ${MIRROR_DOMAIN} — Pilots for HIMS Reform network
+# Generated: ${BUILD_TIME}
+
+User-agent: *
+Allow: /
+Disallow: /.github/
+Disallow: /scripts/
+Disallow: /node_modules/
+Disallow: /page-notes.json
+
+User-agent: Googlebot
+Allow: /
+Disallow: /.github/
+Disallow: /scripts/
+Disallow: /node_modules/
+Disallow: /page-notes.json
+
+User-agent: Bingbot
+Allow: /
+Disallow: /.github/
+Disallow: /scripts/
+Disallow: /node_modules/
+Disallow: /page-notes.json
+
+Sitemap: ${MIRROR_URL}/sitemap.xml
+`);
 console.log('   ✓ robots.txt\n');
 
 // ═══════════════════════════════════════════════════════════════════════════

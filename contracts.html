@@ -18,12 +18,12 @@
     <meta property="og:site_name" content="FAA HIMS Program"/>
     <meta property="og:image" content="https://himsprogram.info/images/P4HR-Newest-Logo-Medium.png"/>
     <meta name="twitter:image" content="https://himsprogram.info/images/P4HR-Newest-Logo-Medium.png"/>
-    <meta property="og:updated_time" content="2026-08-19T06:39:52.502Z"/>
+    <meta property="og:updated_time" content="2026-08-19T07:04:33.527Z"/>
     <meta name="twitter:card" content="summary"/>
     <meta name="twitter:title" content="FAA HIMS Contracts &amp; ALPA Agreements | P4HR"/>
     <meta name="twitter:description" content="Access official contracts between the FAA and ALPA governing the HIMS program. See the financial agreements that fund pilot psychiatric oversight."/>
     <script type="application/ld+json">
-    {"@context":"https://schema.org","@type":"WebPage","name":"FAA HIMS Contracts & ALPA Agreements | P4HR","description":"Access official contracts between the FAA and ALPA governing the HIMS program. See the financial agreements that fund pilot psychiatric oversight.","url":"https://himsprogram.info/contracts.html","dateModified":"2026-08-19T06:39:52.502Z","isPartOf":{"@type":"WebSite","name":"FAA HIMS Program","url":"https://himsprogram.info","alternateName":"FAA HIMS Program Information"}}
+    {"@context":"https://schema.org","@type":"WebPage","name":"FAA HIMS Contracts & ALPA Agreements | P4HR","description":"Access official contracts between the FAA and ALPA governing the HIMS program. See the financial agreements that fund pilot psychiatric oversight.","url":"https://himsprogram.info/contracts.html","dateModified":"2026-08-19T07:04:33.527Z","isPartOf":{"@type":"WebSite","name":"FAA HIMS Program","url":"https://himsprogram.info","alternateName":"FAA HIMS Program Information"}}
     </script>
     <script type="application/ld+json">
     {"@context":"https://schema.org","@type":"WebSite","name":"HIMS Program Info","alternateName":"FAA HIMS Program Information","url":"https://himsprogram.info"}
@@ -683,14 +683,25 @@ nav.related-articles li{margin:.35rem 0}
     }
   }
 
-  /* Editorial context block — mirror-only original content */
-  aside.mirror-note {
+  /* Editorial context block — mirror-only original content.
+     Class-only selector, with explicit resets. P4HR styles its nav sidebar
+     with a bare 'aside' selector: width:250px; height:100vh; position:sticky.
+     max-width cannot override an explicit width, so an <aside> note rendered
+     as a 250px x 100vh column and pushed page content to y=1187 — below the
+     fold on a 1100px viewport. The resets stay as belt-and-braces even though
+     the note is now emitted as <section>. */
+  .mirror-note {
+    width: auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+    position: static !important;
+    overflow: visible !important;
     max-width: 900px; margin: 1.5rem auto 2rem; padding: 1rem 1.25rem;
     border-left: 4px solid #4a90d9; background: rgba(74,144,217,.07);
-    border-radius: 6px;
+    border-radius: 6px; box-sizing: border-box;
   }
-  aside.mirror-note h2 { font-size: 1rem; margin: 0 0 .5rem; letter-spacing: .02em; }
-  aside.mirror-note p { margin: 0; line-height: 1.6; }
+  .mirror-note h2 { font-size: 1rem; margin: 0 0 .5rem; letter-spacing: .02em; }
+  .mirror-note p { margin: 0; line-height: 1.6; }
 
   /* Related Articles styling (page CSS is stripped, so style here) */
   nav.related-articles {
@@ -1028,7 +1039,7 @@ nav.related-articles li{margin:.35rem 0}
         Not affiliated with the FAA or official HIMS Program.
       </p>
       <p style="font-size:0.64rem;color:#445;margin:0;font-family:monospace;">
-        Build #745 | 8/19/2026, 06:39:52 UTC
+        Build #746 | 8/19/2026, 07:04:33 UTC
       </p>
     </div>
   </div>
@@ -1210,4 +1221,4 @@ document.addEventListener('DOMContentLoaded', function() {
 
 </body>
 </html>
-<!-- Build #745 | himsprogram.info | 2026-08-19T06:39:52.502Z -->
+<!-- Build #746 | himsprogram.info | 2026-08-19T07:04:33.527Z -->

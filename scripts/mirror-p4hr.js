@@ -1008,7 +1008,7 @@ ${generated.filter(p => p !== '404.html').map(p => {
   }).join('\n')}
 </urlset>`;
 fs.writeFileSync('sitemap.xml', sitemapXml);
-console.log(`   ✓ sitemap.xml (${generated.length - 1} URLs)`);
+console.log(`   ✓ sitemap.xml (${generated.length - 1} URLs)\n`);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // STEP 10: Generate robots.txt

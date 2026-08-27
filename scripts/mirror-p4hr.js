@@ -113,11 +113,21 @@ function buildRelatedArticles(pageName) {
   const rel = (data.related || {})[pageName];
   if (!rel || !rel.length) return '';
   const stand = data.standalone_titles || {};
-  const items = rel.filter(rp => rp !== pageName).map(function(rp) {
-    let label = stand[rp] || (pageMeta[rp] && pageMeta[rp].title) || rp;
+  // Upstream related-links.json changed schema on 2026-08-26: "related" lists
+  // now carry {slug, title} objects instead of bare filename strings. The old
+  // string-only code passed the object through `|| rp` into .replace() and
+  // crashed the whole build (TypeError: label.replace is not a function),
+  // freezing the mirror at the 2026-08-26T20:21Z deploy. Accept both forms.
+  const items = rel.map(function(entry) {
+    const isObj = entry && typeof entry === 'object';
+    const rp = String((isObj ? entry.slug : entry) || '');
+    if (!rp || rp === pageName) return '';
+    let label = (isObj && typeof entry.title === 'string' && entry.title)
+             || stand[rp] || (pageMeta[rp] && pageMeta[rp].title) || rp;
+    if (typeof label !== 'string') label = rp;
     label = label.replace(/\s*\|\s*(Pilots for HIMS Reform|P4HR)\s*$/, '');
     return `    <li><a href="/${rp}">${esc(label)}</a></li>`;
-  });
+  }).filter(Boolean);
   if (!items.length) return '';
   return `\n<nav class="related-articles" aria-label="Related articles">\n  <h2>Related Articles</h2>\n  <ul>\n${items.join('\n')}\n  </ul>\n</nav>\n`;
 }
@@ -129,6 +139,82 @@ function buildRelatedArticles(pageName) {
 // wrapped in <footer>), it deleted the entire article body along with it.
 const P_COPYRIGHT  = /<p[^>]*>(?:(?!<\/p>)[\s\S])*?©\s*20\d{2} Pilots for HIMS Reform(?:(?!<\/p>)[\s\S])*?<\/p>/gi;
 const P_DISCLAIMER = /<p[^>]*>(?:(?!<\/p>)[\s\S])*?Disclaimer:(?:(?!<\/p>)[\s\S])*?not constitute legal(?:(?!<\/p>)[\s\S])*?<\/p>/gi;
+
+// ─── Page CSS scoping ───────────────────────────────────────────────────────
+// P4HR pages ship <style> blocks that style kickers, badges, meta lines and CTA
+// buttons. Deleting them wholesale left naked text on 21 pages — e.g. the
+// "P4HR — Oversight & Accountability" eyebrow above the H1 on
+// submit-faa-complaint-dot-oig.html, and the "PDF" badges in the library pages.
+//
+// Rather than delete, every selector is rewritten under #main-content so page
+// CSS cannot reach the shell's nav <aside>, .container or banner. Rules anchored
+// on html/body/:root are dropped (they cannot be meaningfully scoped), and
+// position:fixed|sticky is stripped because a fixed element escapes its
+// container no matter how its selector is scoped — that is precisely how the
+// editorial note ended up overlaying the page.
+const CSS_SCOPE = '#main-content';
+
+function scopeSelector(sel) {
+  sel = sel.trim();
+  if (!sel) return null;
+  if (/^(from|to|\d+(\.\d+)?%)$/i.test(sel)) return sel;   // @keyframes stop — never scope
+  if (/^(html|body|:root)\b/i.test(sel)) return null;      // shell-level — drop
+  if (sel.indexOf(CSS_SCOPE) === 0) return sel;            // already scoped
+  return CSS_SCOPE + ' ' + sel;
+}
+
+function scopeCssRules(css) {
+  let out = '';
+  let i = 0;
+  while (i < css.length) {
+    if (css.startsWith('/*', i)) {
+      const e = css.indexOf('*/', i + 2);
+      i = e < 0 ? css.length : e + 2;
+      continue;
+    }
+    const brace = css.indexOf('{', i);
+    if (brace < 0) break;
+    const prelude = css.slice(i, brace).replace(/\/\*[\s\S]*?\*\//g, '').trim();
+    let depth = 1, j = brace + 1;
+    while (j < css.length && depth > 0) {
+      if (css[j] === '{') depth++;
+      else if (css[j] === '}') depth--;
+      j++;
+    }
+    const body = css.slice(brace + 1, j - 1);
+    i = j;
+
+    if (prelude.startsWith('@')) {
+      const at = prelude.split(/[\s({]/)[0].toLowerCase();
+      if (at === '@media' || at === '@supports') {
+        const inner = scopeCssRules(body);            // recurse: scope the rules inside
+        if (inner.trim()) out += prelude + ' {\n' + inner + '}\n';
+      } else if (at === '@keyframes' || at === '@-webkit-keyframes' || at === '@font-face') {
+        out += prelude + ' {' + body + '}\n';         // stops/descriptors pass through
+      }
+      continue;                                        // @import/@charset/@page dropped
+    }
+
+    const sels = prelude.split(',').map(scopeSelector).filter(Boolean);
+    if (!sels.length) continue;
+    const cleanBody = body.replace(/(^|;)\s*position\s*:\s*(fixed|sticky)\s*(?=;|$)/gi, '$1');
+    if (!cleanBody.replace(/[;\s]/g, '')) continue;
+    out += sels.join(', ') + ' {' + cleanBody + '}\n';
+  }
+  return out;
+}
+
+// Pull every <style> block out of the content and return the scoped equivalent.
+function scopePageStyles(content) {
+  const blocks = [];
+  content = content.replace(/<style[^>]*>([\s\S]*?)<\/style>/gi, function (_m, css) {
+    blocks.push(css);
+    return '';
+  });
+  if (!blocks.length) return { content: content, css: '' };
+  const raw = blocks.join('\n').replace(/@(import|charset)[^;]*;/gi, '');
+  return { content: content, css: scopeCssRules(raw) };
+}
 
 /**
  * FIX 3 — Strip embedded <head> blocks from page content.
@@ -151,19 +237,23 @@ function cleanPageContent(raw, pageName) {
   content = content.replace(P_COPYRIGHT, '');
   content = content.replace(P_DISCLAIMER, '');
 
+  // Extract and scope page CSS BEFORE the branch below. This has to happen
+  // ahead of the <head> strip, because fragments that do carry a <head> keep
+  // their <style> inside it — stripping the head first would discard the CSS.
+  const styled = scopePageStyles(content);
+  content = styled.content;
+  const cleanedStyles = styled.css.trim().length > 20
+    ? '<style id="mirror-page-css">\n' + styled.css + '</style>\n'
+    : '';
+
   const trimmed = content.trimStart();
   const isFullDoc = trimmed.startsWith('<!DOCTYPE') || trimmed.startsWith('<!doctype') ||
       trimmed.startsWith('<html') || trimmed.startsWith('<head');
   const hasEmbeddedHead = content.includes('<head>') || content.includes('<head ');
 
   if (!isFullDoc && !hasEmbeddedHead) {
-    content = content.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
-    return content;
+    return cleanedStyles + content;
   }
-
-  // Strip ALL embedded styles — shell already has layout CSS.
-  // Only preserve FAQ accordion and page-specific content styles.
-  let cleanedStyles = '';
 
   if (isFullDoc) {
     var bodyStart = content.indexOf('<body');
@@ -180,16 +270,10 @@ function cleanPageContent(raw, pageName) {
     console.log('(full-doc cleaned) ');
   }
 
-  // Strip remaining <head> sections and embedded styles
+  // Strip remaining <head> sections (styles are already extracted above)
   content = content.replace(/<head[\s\S]*?<\/head>/gi, '');
-  content = content.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
 
-  // Re-inject cleaned page styles
-  if (cleanedStyles.trim().length > 50) {
-    content = cleanedStyles + '\n' + content;
-  }
-
-  return content;
+  return cleanedStyles + content;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -383,6 +467,7 @@ shellBefore = shellBefore.replace(/<meta\s+name="robots"\s+content="[^"]*"\s*\/?
 shellBefore = shellBefore.replace(/<script type="application\/ld\+json">\s*\{[^}]*"@type"\s*:\s*"Organization"[\s\S]*?<\/script>/g, '');
 shellBefore = shellBefore.replace(/<script type="application\/ld\+json">\s*\{[^}]*"@type"\s*:\s*"WebSite"[\s\S]*?<\/script>/g, '');
 shellBefore = shellBefore.replace(/<meta\s+property="og:site_name"\s+content="[^"]*"\s*\/?>/g, '');
+shellBefore = shellBefore.replace(/<meta\s+name="application-name"\s+content="[^"]*"\s*\/?>/g, '<meta name="application-name" content="FAA HIMS Program Information">');
 
 // ─── Inject CSS for fixed resource network panel (CSS-only, no DOM changes) ─
 const mirrorCSS = `
@@ -773,7 +858,7 @@ console.log(`     Homepage:     ${homepageContent.length} bytes\n`);
 // ═══════════════════════════════════════════════════════════════════════════
 
 function buildPage(pageName, content, meta) {
-  const title = meta?.title || `${pageName.replace(/[-_]/g, ' ').replace('.html', '')} | FAA HIMS Program Info`;
+  const title = meta?.title || `${pageName.replace(/[-_]/g, ' ').replace('.html', '')} | FAA HIMS Program Information`;
   const desc = meta?.description || 'FAA HIMS program information and pilot advocacy resources.';
   const canonical = pageName === 'index.html' ? MIRROR_URL + '/' : `${MIRROR_URL}/${encodeURI(pageName)}`;
   const p4hrLink = `${SOURCE_URL}/?page=${encodeURIComponent(pageName)}`;
@@ -809,7 +894,7 @@ function buildPage(pageName, content, meta) {
     <meta property="og:description" content="${esc(desc)}"/>
     <meta property="og:type" content="website"/>
     <meta property="og:url" content="${canonical}"/>
-    <meta property="og:site_name" content="FAA HIMS Program"/>
+    <meta property="og:site_name" content="FAA HIMS Program Information"/>
     <meta property="og:image" content="${MIRROR_URL}/images/P4HR-Newest-Logo-Medium.png"/>
     <meta name="twitter:image" content="${MIRROR_URL}/images/P4HR-Newest-Logo-Medium.png"/>
     <meta property="og:updated_time" content="${BUILD_TIME}"/>
@@ -817,16 +902,16 @@ function buildPage(pageName, content, meta) {
     <meta name="twitter:title" content="${esc(title)}"/>
     <meta name="twitter:description" content="${esc(desc)}"/>
     <script type="application/ld+json">
-    {"@context":"https://schema.org","@type":"WebPage","name":${JSON.stringify(title)},"description":${JSON.stringify(desc)},"url":"${canonical}","dateModified":"${BUILD_TIME}","isPartOf":{"@type":"WebSite","name":"FAA HIMS Program","url":"${MIRROR_URL}","alternateName":"FAA HIMS Program Information"}}
+    {"@context":"https://schema.org","@type":"WebPage","name":${JSON.stringify(title)},"description":${JSON.stringify(desc)},"url":"${canonical}","dateModified":"${BUILD_TIME}","isPartOf":{"@type":"WebSite","name":"FAA HIMS Program Information","url":"${MIRROR_URL}","alternateName":"HIMS Program Info"}}
     </script>
     <script type="application/ld+json">
-    {"@context":"https://schema.org","@type":"WebSite","name":"HIMS Program Info","alternateName":"FAA HIMS Program Information","url":"${MIRROR_URL}"}
+    {"@context":"https://schema.org","@type":"WebSite","name":"FAA HIMS Program Information","alternateName":["HIMS Program Info","FAA HIMS Program","himsprogram.info"],"url":"${MIRROR_URL}"}
     </script>
     <script type="application/ld+json">
     {"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"${MIRROR_URL}/"}${pageName === 'index.html' ? '' : `,{"@type":"ListItem","position":2,"name":${JSON.stringify(title.split('|')[0].trim())},"item":"${canonical}"}`}]}
     </script>
     <script type="application/ld+json">
-    {"@context":"https://schema.org","@type":"Organization","name":"HIMS Program Info","url":"${MIRROR_URL}","logo":"${MIRROR_URL}/images/P4HR-Newest-Logo-Medium.png","parentOrganization":{"@type":"Organization","name":"Pilots for HIMS Reform","url":"${SOURCE_URL}"}}
+    {"@context":"https://schema.org","@type":"Organization","name":"FAA HIMS Program Information","url":"${MIRROR_URL}","logo":"${MIRROR_URL}/images/P4HR-Newest-Logo-Medium.png","parentOrganization":{"@type":"Organization","name":"Pilots for HIMS Reform","url":"${SOURCE_URL}"}}
     </script>${faqSchema}`;
   
   // Mirror identification banner
@@ -880,7 +965,7 @@ function buildPage(pageName, content, meta) {
 
 console.log('6. Generating index.html...');
 const indexMeta = {
-  title: `FAA HIMS Program Information & Reform | ${MIRROR_DOMAIN} — Advocacy Resource ${YEAR}`,
+  title: `FAA HIMS Program Information & Reform | Pilot Advocacy Resource ${YEAR}`,
   description: 'Independent FAA HIMS program information center. Pilot medical certification, HIMS requirements, reform advocacy. A Pilots for HIMS Reform network resource.'
 };
 const indexHtml = buildPage('index.html', homepageContent, indexMeta);
@@ -893,6 +978,9 @@ console.log(`   ✓ index.html (${(indexHtml.length / 1024).toFixed(0)}K)\n`);
 
 console.log(`7. Generating ${allPages.size} content pages...\n`);
 let okCount = 0, failCount = 0;
+const crypto = require('crypto');
+const contentHash = (x) => crypto.createHash('sha1').update(String(x)).digest('hex').slice(0, 16);
+const pageHashes = { 'index.html': contentHash(homepageContent) };
 const generated = ['index.html'];
 const sortedPages = [...allPages].sort();
 
@@ -923,6 +1011,7 @@ for (let i = 0; i < sortedPages.length; i++) {
 
   const html = buildPage(pageName, pageContent, meta);
   fs.writeFileSync(pageName, html);
+  pageHashes[pageName] = contentHash(pageContent);
   generated.push(pageName);
   okCount++;
   console.log(`✓ (${(html.length / 1024).toFixed(0)}K)`);
@@ -980,6 +1069,7 @@ ${rows}
     description: `Full directory of all ${generated.length - 1} pages on himsprogram.info covering FAA HIMS program requirements, pilot rights, legal cases, and reform advocacy.`
   });
   fs.writeFileSync('site-index.html', html);
+  pageHashes['site-index.html'] = contentHash(rows);
   generated.push('site-index.html');
   console.log(`   OK site-index.html (${generated.length - 1} links)\n`);
 }
@@ -1027,21 +1117,49 @@ console.log('   ✓ 404.html\n');
 
 console.log('9. Generating sitemap.xml...');
 const today = BUILD_TIME.split('T')[0];
-const highPri = new Set(['index.html', 'faq.html', 'about.html', 'entering-hims.html',
-  'emergency-toolkit.html', 'stories.html', 'faa-hims-program.html', 'aeropath.html', 'news.html']);
-const medPri = new Set(['legal.html', 'p4hr-act-2026.html', 'policy-reform.html', 'contact.html',
-  'our-team.html', 'resources.html', 'toolkit.html', 'testimonials.html', 'mission-vision.html']);
 
+// Per-page lastmod from content hashes: a page's lastmod only advances when
+// its mirrored CONTENT changes (hashes are taken before the shell is added,
+// so per-build stamps like dateModified cannot churn them). Previous state
+// lives in sitemap-state.json; absent/corrupt state degrades to today for
+// every page, which is exactly the old behavior.
+const STATE_FILE = 'sitemap-state.json';
+let smState = {};
+try { smState = JSON.parse(fs.readFileSync(STATE_FILE, 'utf-8')); } catch (e) { smState = {}; }
+const newState = {};
+const lastmodFor = (p) => {
+  const h = pageHashes[p] || '';
+  const prev = smState[p];
+  const m = (prev && prev.h === h && /^\d{4}-\d{2}-\d{2}$/.test(prev.m)) ? prev.m : today;
+  newState[p] = { h, m };
+  return m;
+};
+
+const smPages = generated.filter(p => p !== '404.html');
 const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${generated.filter(p => p !== '404.html').map(p => {
+${smPages.map(p => {
     const loc = p === 'index.html' ? MIRROR_URL + '/' : `${MIRROR_URL}/${encodeURI(p)}`;
-    const pri = p === 'index.html' ? '1.0' : highPri.has(p) ? '0.9' : medPri.has(p) ? '0.8' : '0.6';
-    return `  <url><loc>${loc}</loc><lastmod>${today}</lastmod><changefreq>daily</changefreq><priority>${pri}</priority></url>`;
+    return `  <url><loc>${loc}</loc><lastmod>${lastmodFor(p)}</lastmod></url>`;
   }).join('\n')}
 </urlset>`;
 fs.writeFileSync('sitemap.xml', sitemapXml);
-console.log(`   ✓ sitemap.xml (${generated.length - 1} URLs)\n`);
+fs.writeFileSync(STATE_FILE, JSON.stringify(newState, null, 0));
+const changedCount = smPages.filter(p => newState[p].m === today).length;
+console.log(`   ✓ sitemap.xml (${smPages.length} URLs, ${changedCount} with lastmod=today)`);
+
+// sitemap-index.xml was a hand-committed stale wrapper; regenerate it every
+// build so it can never disagree with sitemap.xml again.
+const smNewest = smPages.map(p => newState[p].m).sort().pop() || today;
+fs.writeFileSync('sitemap-index.xml', `<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <sitemap>
+    <loc>${MIRROR_URL}/sitemap.xml</loc>
+    <lastmod>${smNewest}</lastmod>
+  </sitemap>
+</sitemapindex>
+`);
+console.log(`   ✓ sitemap-index.xml (regenerated, lastmod=${smNewest})\n`);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // STEP 10: Generate robots.txt

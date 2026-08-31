@@ -67,6 +67,24 @@ function fetchBinary(url, dest) {
 }
 
 function sleep(ms) { execSync(`sleep ${ms / 1000}`); }
+
+// Page names come from remote content — loadPage() calls scraped out of the
+// P4HR shell and the keys of page-meta.json. They are interpolated into a
+// shell command in fetchText() and used as a write path in step 7, so a name
+// containing a quote could break out of the curl argument, and one containing
+// ".." could write outside the repository. Neither is reachable today, but
+// nothing upstream guarantees that. Unicode is allowed (page titles carry
+// curly apostrophes); shell metacharacters and traversal are not.
+const UNSAFE_NAME = /["'`$;|&<>\\\n\r\t*?(){}\[\]!~]/;
+function isSafePageName(p) {
+  if (typeof p !== 'string' || !p) return false;
+  if (!p.toLowerCase().endsWith('.html')) return false;
+  if (p.length > 200) return false;
+  if (p.startsWith('/') || p.startsWith('.')) return false;
+  if (p.includes('..') || p.includes('//')) return false;
+  if (UNSAFE_NAME.test(p)) return false;
+  return true;
+}
 function esc(s) { return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 
 // Fetch related-links.json once at build time for static Related Articles
@@ -394,6 +412,14 @@ Object.keys(pageMeta).forEach(p => allPages.add(p));
 // Remove externals and special pages
 ['donate.html'].forEach(p => allPages.delete(p));
 [...allPages].filter(p => p.includes('://')).forEach(p => allPages.delete(p));
+
+// Drop anything that could break out of the fetch command or escape the repo
+const rejected = [...allPages].filter(p => !isSafePageName(p));
+rejected.forEach(p => allPages.delete(p));
+if (rejected.length) {
+  console.log(`   ! ${rejected.length} page name(s) rejected as unsafe:`);
+  rejected.forEach(p => console.log(`     - ${JSON.stringify(p)}`));
+}
 
 console.log(`   ✓ ${allPages.size} pages to generate\n`);
 
@@ -1010,6 +1036,10 @@ for (let i = 0; i < sortedPages.length; i++) {
   };
 
   const html = buildPage(pageName, pageContent, meta);
+  // P4HR now publishes pages inside folders (articles/…). writeFileSync will
+  // not create a missing parent, so make it before writing.
+  const outDir = path.dirname(pageName);
+  if (outDir && outDir !== '.') fs.mkdirSync(outDir, { recursive: true });
   fs.writeFileSync(pageName, html);
   pageHashes[pageName] = contentHash(pageContent);
   generated.push(pageName);
@@ -1030,11 +1060,23 @@ console.log('7b. Sweeping orphaned pages...');
   } else {
     const keep = new Set(generated.concat(['404.html', 'site-index.html']));
     let removed = 0;
-    for (const f of fs.readdirSync(process.cwd())) {
-      if (!f.endsWith('.html')) continue;
-      if (keep.has(f)) continue;
-      try { fs.unlinkSync(f); removed++; console.log(`   - removed orphan: ${f}`); }
-      catch (e) { console.log(`   ! could not remove ${f}: ${e.message}`); }
+    // Sweep the root plus only those folders this build actually wrote pages
+    // into, so images/, .github/ and friends are never touched.
+    const sweepDirs = new Set(['.']);
+    for (const g of generated) {
+      const dd = path.dirname(g);
+      if (dd && dd !== '.') sweepDirs.add(dd);
+    }
+    for (const dir of sweepDirs) {
+      let entries = [];
+      try { entries = fs.readdirSync(dir); } catch (e) { continue; }
+      for (const f of entries) {
+        if (!f.endsWith('.html')) continue;
+        const rel = dir === '.' ? f : `${dir}/${f}`;
+        if (keep.has(rel)) continue;
+        try { fs.unlinkSync(rel); removed++; console.log(`   - removed orphan: ${rel}`); }
+        catch (e) { console.log(`   ! could not remove ${rel}: ${e.message}`); }
+      }
     }
     console.log(`   ${removed} orphan page(s) removed\n`);
   }

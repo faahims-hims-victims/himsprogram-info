@@ -225,10 +225,18 @@ function scopeCssRules(css) {
 // Pull every <style> block out of the content and return the scoped equivalent.
 function scopePageStyles(content) {
   const blocks = [];
-  content = content.replace(/<style[^>]*>([\s\S]*?)<\/style>/gi, function (_m, css) {
-    blocks.push(css);
-    return '';
-  });
+  // A single pass can be defeated by nesting: removing the inner block of
+  // "<sty<style></style>le>…</style>" reassembles an outer <style> that then
+  // reaches the output unscoped. Repeat until the content stops changing.
+  // Each pass that matches strictly shortens the string, so this terminates.
+  let prev;
+  do {
+    prev = content;
+    content = content.replace(/<style[^>]*>([\s\S]*?)<\/style>/gi, function (_m, css) {
+      blocks.push(css);
+      return '';
+    });
+  } while (content !== prev);
   if (!blocks.length) return { content: content, css: '' };
   const raw = blocks.join('\n').replace(/@(import|charset)[^;]*;/gi, '');
   return { content: content, css: scopeCssRules(raw) };
@@ -790,7 +798,10 @@ document.addEventListener('click', function(e) {
   var link = e.target.closest('aside a');
   if (!link) return;
   var href = link.getAttribute('href');
-  if (href && href !== '#' && !href.startsWith('javascript:')) {
+  // Checking javascript: alone left data: and vbscript: through — both also
+  // execute script. Leading whitespace and control characters are stripped by
+  // the URL parser, so the test tolerates them too.
+  if (href && href !== '#' && !/^[\u0000-\u0020]*(?:javascript|data|vbscript):/i.test(href)) {
     var aside = document.querySelector('aside');
     if (aside && aside.classList.contains('active')) {
       aside.classList.remove('active');

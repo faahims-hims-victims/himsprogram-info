@@ -1190,18 +1190,20 @@ fs.writeFileSync(STATE_FILE, JSON.stringify(newState, null, 0));
 const changedCount = smPages.filter(p => newState[p].m === today).length;
 console.log(`   ✓ sitemap.xml (${smPages.length} URLs, ${changedCount} with lastmod=today)`);
 
-// sitemap-index.xml was a hand-committed stale wrapper; regenerate it every
-// build so it can never disagree with sitemap.xml again.
-const smNewest = smPages.map(p => newState[p].m).sort().pop() || today;
-fs.writeFileSync('sitemap-index.xml', `<?xml version="1.0" encoding="UTF-8"?>
-<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <sitemap>
-    <loc>${MIRROR_URL}/sitemap.xml</loc>
-    <lastmod>${smNewest}</lastmod>
-  </sitemap>
-</sitemapindex>
-`);
-console.log(`   ✓ sitemap-index.xml (regenerated, lastmod=${smNewest})\n`);
+// sitemap-index.xml is no longer emitted. An index is only for sites that
+// exceed 50,000 URLs or split across several files; this one wrapped a single
+// 20KB sitemap. Worse, Search Console reports the URL count of whatever file
+// you submit, and an index contains no page URLs — so submitting the index
+// showed "Success, 0 discovered pages" and looked like a failure. One sitemap,
+// one row, one honest number. Remove any leftover file so it cannot be served
+// stale or resubmitted by mistake.
+try {
+  if (fs.existsSync('sitemap-index.xml')) {
+    fs.unlinkSync('sitemap-index.xml');
+    console.log('   ✓ removed obsolete sitemap-index.xml');
+  }
+} catch (e) { console.log(`   ! could not remove sitemap-index.xml: ${e.message}`); }
+console.log('');
 
 // ═══════════════════════════════════════════════════════════════════════════
 // STEP 10: Generate robots.txt
